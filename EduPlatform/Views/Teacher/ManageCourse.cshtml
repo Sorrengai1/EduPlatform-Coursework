@@ -51,8 +51,10 @@
                         <div id="materialFormError" class="text-danger small mb-3" role="alert" aria-live="polite" hidden></div>
                         <button type="submit" class="btn w-100 text-white fw-bold" style="background-color: #3D5C4B; border-radius: 8px;"><i class="bi bi-plus-lg me-1"></i> Додати матеріал</button>
                     </form>
+
                     <hr class="my-4" style="border-color: #F2E8EA;" />
                     <h6 class="fw-bold mb-3" style="color: #40101F;">Вже додано:</h6>
+
                     @if (Model.Materials != null && Model.Materials.Any())
                     {
                         @foreach (var mat in Model.Materials)
@@ -91,20 +93,29 @@
                     <form asp-action="ManageCourse" method="get" class="mb-4">
                         <input type="hidden" name="id" value="@Model.Id" />
                         <div class="input-group">
-                            <input type="text" name="searchString" value="@searchString" class="form-control" placeholder="Пошук за ім'ям або email..." style="border-radius: 8px 0 0 8px;" />
+                            <input type="text" name="searchString" value="@searchString" class="form-control" placeholder="Пошук студента за ПІБ або email..." style="border-radius: 8px 0 0 8px;" />
                             <button type="submit" class="btn text-white" aria-label="Знайти студентів" style="background-color: #6D1F32; border-radius: 0 8px 8px 0;"><i class="bi bi-search"></i></button>
                         </div>
                     </form>
+
                     <form asp-action="EnrollStudent" method="post">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="courseId" value="@Model.Id" />
                         <label class="form-label text-muted small fw-bold" for="studentIds">Оберіть студентів (Ctrl для кількох):</label>
+
                         @if (availableStudents.Any())
                         {
                             <select id="studentIds" name="studentIds" class="form-select mb-3" multiple size="5" required style="border-radius: 8px;">
                                 @foreach (var student in availableStudents)
                                 {
-                                    <option value="@student.Id">@student.Name (@student.Email)</option>
+                                    var fullName = string.Join(" ", new[]
+                                    {
+                                        student.LastName,
+                                        student.Name,
+                                        student.MiddleName
+                                    }.Where(x => !string.IsNullOrWhiteSpace(x)));
+
+                                    <option value="@student.Id">@fullName (@student.Email)</option>
                                 }
                             </select>
                             <button type="submit" class="btn w-100 text-white fw-bold" style="background-color: #3D5C4B; border-radius: 8px;"><i class="bi bi-person-plus me-1"></i> Додати обраних</button>
@@ -114,21 +125,35 @@
                             <div class="text-center rounded p-4 mb-3" style="background-color: #F8F6F4; border: 1px solid #E7E0DC;" role="status">
                                 <i class="bi bi-search fs-4 d-block mb-2" style="color: #6D1F32;"></i>
                                 <strong style="color: #40101F;">@(string.IsNullOrWhiteSpace(searchString) ? "Немає доступних студентів" : "Студентів не знайдено")</strong>
-                                <p class="text-muted small mb-0 mt-1">@(string.IsNullOrWhiteSpace(searchString) ? "Усі доступні студенти вже додані або ще не зареєстровані." : "За вашим запитом немає результатів. Спробуйте інше ім’я або email.")</p>
+                                <p class="text-muted small mb-0 mt-1">@(string.IsNullOrWhiteSpace(searchString) ? "Усі доступні студенти вже додані або ще не зареєстровані." : "За вашим запитом немає результатів. Спробуйте пошук за іншим прізвищем, ім’ям, по батькові або email.")</p>
                             </div>
                             <button type="button" class="btn w-100 text-white fw-bold" disabled style="background-color: #3D5C4B; border-radius: 8px;"><i class="bi bi-person-plus me-1"></i> Додати обраних</button>
                         }
                     </form>
+
                     <hr class="my-4" style="border-color: #F2E8EA;" />
                     <h6 class="fw-bold mb-3" style="color: #40101F;">Вже на курсі:</h6>
+
                     @if (Model.Enrollments != null && Model.Enrollments.Any())
                     {
                         @foreach (var enr in Model.Enrollments)
                         {
+                            var enrolledFullName = string.Join(" ", new[]
+                            {
+                                enr.Student?.LastName,
+                                enr.Student?.Name,
+                                enr.Student?.MiddleName
+                            }.Where(x => !string.IsNullOrWhiteSpace(x)));
+
                             <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded mb-2" style="border-left: 4px solid #3D5C4B;">
                                 <div class="d-flex align-items-center">
-                                    <div class="rounded-circle text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: #6D1F32; font-weight: bold;">@(string.IsNullOrEmpty(enr.Student?.Name) ? "С" : enr.Student.Name.Substring(0, 1).ToUpper())</div>
-                                    <div><strong class="d-block" style="color: #40101F;">@enr.Student?.Name</strong><small class="text-muted">@enr.Student?.Email</small></div>
+                                    <div class="rounded-circle text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: #6D1F32; font-weight: bold;">
+                                        @(string.IsNullOrEmpty(enr.Student?.Name) ? "С" : enr.Student.Name.Substring(0, 1).ToUpper())
+                                    </div>
+                                    <div>
+                                        <strong class="d-block" style="color: #40101F;">@enrolledFullName</strong>
+                                        <small class="text-muted">@enr.Student?.Email</small>
+                                    </div>
                                 </div>
                                 <form asp-action="RemoveStudent" method="post" onsubmit="return confirm('Ви впевнені, що хочете видалити цього студента з курсу?');">
                                     @Html.AntiForgeryToken()
@@ -150,40 +175,46 @@
 </div>
 
 <script>
-(function () {
-    const form = document.getElementById('materialForm');
-    const title = document.getElementById('materialTitle');
-    const content = document.getElementById('materialContent');
-    const file = document.getElementById('materialFile');
-    const error = document.getElementById('materialFormError');
-    const fileError = document.getElementById('materialFileError');
-    if (!form) return;
-    form.addEventListener('submit', function (event) {
-        title.classList.remove('is-invalid');
-        file.classList.remove('is-invalid');
-        error.hidden = true;
-        if (!title.value.trim()) {
-            event.preventDefault();
-            title.classList.add('is-invalid');
-            title.focus();
-            return;
-        }
-        if (!content.value.trim() && !file.files.length) {
-            event.preventDefault();
-            error.textContent = 'Додайте опис, посилання або прикріпіть файл.';
-            error.hidden = false;
-            content.focus();
-            return;
-        }
-        if (file.files.length) {
-            const selected = file.files[0];
-            if (!/\.(pdf|docx)$/i.test(selected.name) || selected.size === 0 || selected.size > 5 * 1024 * 1024) {
+    (function () {
+        const form = document.getElementById('materialForm');
+        const title = document.getElementById('materialTitle');
+        const content = document.getElementById('materialContent');
+        const file = document.getElementById('materialFile');
+        const error = document.getElementById('materialFormError');
+        const fileError = document.getElementById('materialFileError');
+        if (!form) return;
+
+        form.addEventListener('submit', function (event) {
+            title.classList.remove('is-invalid');
+            file.classList.remove('is-invalid');
+            error.hidden = true;
+
+            if (!title.value.trim()) {
                 event.preventDefault();
-                file.classList.add('is-invalid');
-                fileError.textContent = selected.size > 5 * 1024 * 1024 ? 'Розмір файлу не повинен перевищувати 5 МБ.' : 'Дозволено лише файли PDF та DOCX.';
-                file.focus();
+                title.classList.add('is-invalid');
+                title.focus();
+                return;
             }
-        }
-    });
-})();
+
+            if (!content.value.trim() && !file.files.length) {
+                event.preventDefault();
+                error.textContent = 'Додайте опис, посилання або прикріпіть файл.';
+                error.hidden = false;
+                content.focus();
+                return;
+            }
+
+            if (file.files.length) {
+                const selected = file.files[0];
+                if (!/\.(pdf|docx)$/i.test(selected.name) || selected.size === 0 || selected.size > 5 * 1024 * 1024) {
+                    event.preventDefault();
+                    file.classList.add('is-invalid');
+                    fileError.textContent = selected.size > 5 * 1024 * 1024
+                        ? 'Розмір файлу не повинен перевищувати 5 МБ.'
+                        : 'Дозволено лише файли PDF та DOCX.';
+                    file.focus();
+                }
+            }
+        });
+    })();
 </script>

@@ -161,7 +161,12 @@
                             <tr>
                                 <td>
                                     <span class="student-name">
-                                        @result.Student?.Name
+                                        @string.Join(" ", new[]
+                                        {
+                                            result.Student?.LastName,
+                                            result.Student?.Name,
+                                            result.Student?.MiddleName
+                                        }.Where(x => !string.IsNullOrWhiteSpace(x)))
                                     </span>
                                 </td>
 

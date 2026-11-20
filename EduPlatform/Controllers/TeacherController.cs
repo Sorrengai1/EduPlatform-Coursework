@@ -507,26 +507,66 @@ namespace EduPlatform.Controllers
             return RedirectToAction("MyTests");
         }
 
+
         // GET: Керування курсом
-        public async Task<IActionResult> ManageCourse(int id, string searchString)
+        public async Task<IActionResult> ManageCourse(int id, string? searchString)
         {
-            if (!IsTeacher()) return RedirectToAction("Index", "Home");
-            var course = await _context.Courses.Include(c => c.Materials).Include(c => c.Enrollments).ThenInclude(e => e.Student).FirstOrDefaultAsync(c => c.Id == id);
-            if (course == null) return NotFound();
+            if (!IsTeacher())
+                return RedirectToAction("Index", "Home");
+
+            var course = await _context.Courses
+                .Include(c => c.Materials)
+                .Include(c => c.Enrollments)
+                    .ThenInclude(e => e.Student)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (course == null)
+                return NotFound();
 
             var currentUserId = HttpContext.Session.GetInt32("UserId");
-            if (course.AuthorId != currentUserId) return Forbid();
 
-            var enrolledIds = course.Enrollments.Select(e => e.StudentId).ToList();
-            var availableStudentsQuery = _context.Students.Where(s => s.Role == "Student" && !enrolledIds.Contains(s.Id));
+            if (course.AuthorId != currentUserId)
+                return Forbid();
+
+            var enrolledIds = course.Enrollments
+                .Select(e => e.StudentId)
+                .ToList();
+
+            var availableStudentsQuery = _context.Students
+                .Where(s => s.Role == "Student" &&
+                            !enrolledIds.Contains(s.Id));
+
             searchString = searchString?.Trim() ?? string.Empty;
-            if (!string.IsNullOrEmpty(searchString))
-                availableStudentsQuery = availableStudentsQuery.Where(s => s.Name.Contains(searchString) || s.Email.Contains(searchString));
 
-            ViewBag.AvailableStudents = await availableStudentsQuery.ToListAsync();
+            // Пошук виконується у C#, щоб коректно обробляти українські літери
+            // незалежно від регістру (SQLite не завжди підтримує це для кирилиці).
+            var availableStudents = await availableStudentsQuery.ToListAsync();
+
+            if (!string.IsNullOrWhiteSpace(searchString))
+            {
+                availableStudents = availableStudents.Where(s =>
+                {
+                    var fullName = string.Join(" ", new[]
+                    {
+                        s.LastName,
+                        s.Name,
+                        s.MiddleName
+                    }.Where(part => !string.IsNullOrWhiteSpace(part)));
+
+                    return s.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+                        || (s.LastName?.Contains(searchString, StringComparison.OrdinalIgnoreCase) ?? false)
+                        || (s.MiddleName?.Contains(searchString, StringComparison.OrdinalIgnoreCase) ?? false)
+                        || s.Email.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+                        || fullName.Contains(searchString, StringComparison.OrdinalIgnoreCase);
+                }).ToList();
+            }
+
+            ViewBag.AvailableStudents = availableStudents;
             ViewBag.SearchString = searchString;
+
             return View(course);
         }
+
 
         // POST: Запис студентів
         [HttpPost]
