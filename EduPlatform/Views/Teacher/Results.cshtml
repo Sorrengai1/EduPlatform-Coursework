@@ -1,0 +1,33 @@
+﻿@model IEnumerable<EduPlatform.Models.Attempt>
+
+@{
+    ViewData["Title"] = "Результати студентів";
+}
+
+<h1>Результати студентів</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Студент</th>
+            <th>Курс</th>
+            <th>Модуль</th>
+            <th>Бал</th>
+            <th>Дата</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var attempt in Model)
+        {
+            <tr>
+                <td>@attempt.Student?.Name</td>
+                <td>@attempt.Module?.Course?.Title</td>
+                <td>@attempt.Module?.Title</td>
+                <td>@attempt.Score%</td>
+                <td>@attempt.StartedAt.ToString("dd.MM.yyyy HH:mm")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Index" class="btn btn-secondary">Назад</a>

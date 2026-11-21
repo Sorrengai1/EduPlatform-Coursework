@@ -1,0 +1,244 @@
+﻿@model EduPlatform.Models.Course
+
+@{
+    ViewData["Title"] = "Створити курс";
+    var imageErrors = ViewData.ModelState["imageFile"]?.Errors;
+    bool hasImageError = imageErrors != null && imageErrors.Count > 0;
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 18px; background-color: #FDFBF7;">
+                <div class="card-header border-0 text-white px-4 py-4" style="background: linear-gradient(120deg, #6D1F32, #40101F);">
+                    <h4 class="mb-1 fw-bold">
+                        <i class="bi bi-journal-plus me-2"></i>
+                        Створити новий курс
+                    </h4>
+                    <p class="mb-0 small" style="color: #E5C6C2;">
+                        Заповніть інформацію про курс. Модулі та тести можна додати пізніше.
+                    </p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <form asp-controller="Course"
+                          asp-action="Create"
+                          method="post"
+                          enctype="multipart/form-data"
+                          id="createCourseForm">
+
+                        @Html.AntiForgeryToken()
+
+                        <div asp-validation-summary="ModelOnly"
+                             class="text-danger small mb-3"></div>
+
+                        <!-- Назва курсу -->
+                        <div class="mb-4">
+                            <label asp-for="Title" class="form-label fw-semibold">
+                                Назва курсу <span class="text-danger">*</span>
+                            </label>
+
+                            <input asp-for="Title"
+                                   class="form-control"
+                                   placeholder="Наприклад: Python для початківців"
+                                   required
+                                   maxlength="150" />
+
+                            <span asp-validation-for="Title"
+                                  class="text-danger small"></span>
+                        </div>
+
+                        <!-- Опис курсу -->
+                        <div class="mb-4">
+                            <label asp-for="Description" class="form-label fw-semibold">
+                                Опис курсу <span class="text-danger">*</span>
+                            </label>
+
+                            <textarea asp-for="Description"
+                                      class="form-control"
+                                      rows="5"
+                                      maxlength="3000"
+                                      placeholder="Опишіть, чого навчаться студенти та які теми охоплює курс..."
+                                      required></textarea>
+
+                            <div class="form-text">
+                                Повний опис відображатиметься на сторінці курсу.
+                            </div>
+
+                            <span asp-validation-for="Description"
+                                  class="text-danger small"></span>
+                        </div>
+
+                        <!-- Рівень та тривалість -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="Level" class="form-label fw-semibold">
+                                    Рівень складності
+                                </label>
+
+                                <select asp-for="Level" class="form-select">
+                                    <option value="Beginner">
+                                        Beginner (Початківець)
+                                    </option>
+                                    <option value="Intermediate">
+                                        Intermediate (Середній)
+                                    </option>
+                                    <option value="Advanced">
+                                        Advanced (Просунутий)
+                                    </option>
+                                </select>
+
+                                <span asp-validation-for="Level"
+                                      class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="DurationHours" class="form-label fw-semibold">
+                                    Тривалість (годин)
+                                </label>
+
+                                <input asp-for="DurationHours"
+                                       type="number"
+                                       class="form-control"
+                                       min="1"
+                                       max="10000"
+                                       required />
+
+                                <span asp-validation-for="DurationHours"
+                                      class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Обкладинка курсу -->
+                        <div class="mb-4 p-3 rounded-3"
+                             style="background-color: #F7F2F3; border: 1px solid #F2E8EA;">
+
+                            <label for="imageFile" class="form-label fw-semibold">
+                                <i class="bi bi-image me-1" style="color: #6D1F32;"></i>
+                                Обкладинка курсу
+                            </label>
+
+                            <input type="file"
+                                   id="imageFile"
+                                   name="imageFile"
+                                   class="form-control @(hasImageError ? "is-invalid" : "")"
+                                   accept=".jpg,.jpeg,.png,.webp"
+                                   aria-describedby="imageFileHelp imageFileError" />
+
+                            <div id="imageFileHelp" class="form-text">
+                                JPG, PNG або WEBP, до 5 МБ.
+                                Без зображення буде показана стандартна обкладинка.
+                            </div>
+
+                            <!-- Повідомлення про помилку -->
+                            <div id="imageFileError"
+                                 class="text-danger small mt-2"
+                                 role="alert"
+                                 aria-live="polite">
+
+                                @if (imageErrors != null)
+                                {
+                                    foreach (var error in imageErrors)
+                                    {
+                                        <div>@error.ErrorMessage</div>
+                                    }
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Публічність курсу -->
+                        <div class="form-check mb-4 p-3 ps-5 rounded-3"
+                             style="background-color: #F0F4F0; border: 1px solid #D5DED0;">
+
+                            <input asp-for="IsPublic"
+                                   class="form-check-input" />
+
+                            <label asp-for="IsPublic"
+                                   class="form-check-label fw-semibold"
+                                   style="color: #263F35;">
+                                Публічний курс (доступний усім)
+                            </label>
+
+                            <div class="small text-muted">
+                                Якщо вимкнути, курс не буде доступний усім відвідувачам.
+                            </div>
+                        </div>
+
+                        <!-- Кнопки -->
+                        <div class="d-flex justify-content-between flex-wrap gap-3 pt-3 border-top">
+
+                            <a asp-controller="Course"
+                               asp-action="Index"
+                               class="btn btn-outline-secondary px-4">
+                                Скасувати
+                            </a>
+
+                            <button type="submit"
+                                    class="btn btn-primary px-4">
+                                <i class="bi bi-plus-circle me-1"></i>
+                                Створити курс
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        (() => {
+            const form = document.getElementById('createCourseForm');
+            const input = document.getElementById('imageFile');
+            const error = document.getElementById('imageFileError');
+
+            const maxSize = 5 * 1024 * 1024;
+            const allowed = ['.jpg', '.jpeg', '.png', '.webp'];
+
+            function validateImage() {
+                const file = input.files && input.files[0];
+                let message = '';
+
+                if (file) {
+                    const name = file.name.toLowerCase();
+
+                    if (!allowed.some(ext => name.endsWith(ext))) {
+                        message =
+                            'Непідтримуваний формат зображення. Дозволено JPG, PNG та WEBP.';
+                    }
+                    else if (file.size === 0) {
+                        message =
+                            'Вибраний файл порожній. Оберіть інше зображення.';
+                    }
+                    else if (file.size > maxSize) {
+                        message =
+                            'Розмір зображення не повинен перевищувати 5 МБ.';
+                    }
+                }
+
+                error.textContent = message;
+                input.classList.toggle('is-invalid', Boolean(message));
+                input.setCustomValidity(message);
+
+                return !message;
+            }
+
+            // Перевірка після вибору зображення
+            input.addEventListener('change', validateImage);
+
+            // Перевірка перед створенням курсу
+            form.addEventListener('submit', event => {
+                if (!validateImage()) {
+                    event.preventDefault();
+                    input.reportValidity();
+                }
+            });
+        })();
+    </script>
+}

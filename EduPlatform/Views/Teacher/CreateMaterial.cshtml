@@ -1,0 +1,55 @@
+﻿@{
+    ViewData["Title"] = "Додати матеріал";
+    Layout = "~/Views/Shared/_TeacherLayout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header text-white" style="background-color: #6D1F32;">
+                    <h4 class="mb-0"><i class="bi bi-journal-plus me-2"></i> Додати новий матеріал</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="AddMaterial" method="post" enctype="multipart/form-data">
+                        
+                        <!-- Вибір курсу -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Оберіть курс:</label>
+                            <select name="courseId" class="form-select" required>
+                                <option value="">-- Виберіть курс --</option>
+                                @foreach (var course in ViewBag.Courses)
+                                {
+                                    <option value="@course.Id">@course.Title</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Назва матеріалу -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Назва матеріалу:</label>
+                            <input type="text" name="title" class="form-control" placeholder="Наприклад: Лекція 1" required />
+                        </div>
+
+                        <!-- Опис -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Опис (необов'язково):</label>
+                            <textarea name="content" class="form-control" rows="3" placeholder="Короткий опис або посилання"></textarea>
+                        </div>
+
+                        <!-- Файл -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Прикріпити файл (PDF, DOCX):</label>
+                            <input type="file" name="file" class="form-control" />
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-action="MyMaterials" class="btn btn-outline-secondary">Скасувати</a>
+                            <button type="submit" class="btn btn-success">Додати матеріал</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

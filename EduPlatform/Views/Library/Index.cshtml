@@ -1,0 +1,258 @@
+﻿
+@model IEnumerable<EduPlatform.Models.LibraryItem>
+
+@{
+    ViewData["Title"] = "Бібліотека";
+
+    // Перевіряємо, чи користувач застосував пошук або фільтр.
+    var searchString = ViewBag.SearchString as string ?? "";
+    var selectedCategory = ViewBag.Category as string ?? "";
+
+    bool hasActiveFilters =
+        !string.IsNullOrWhiteSpace(searchString) ||
+        !string.IsNullOrWhiteSpace(selectedCategory);
+}
+
+<div class="container py-5">
+
+    <!-- Шапка бібліотеки (Hero-секція) -->
+    <div class="library-hero mb-5">
+        <div class="row align-items-center">
+
+            <div class="col-lg-8">
+                <h1 class="fw-bold display-4 mb-2"
+                    style="color: #40101F;">
+                    Бібліотека матеріалів
+                </h1>
+
+                <p class="lead text-muted mb-0"
+                   style="font-size: 1.2rem;">
+                    Корисні книги, статті та відео для вашого навчання
+                </p>
+            </div>
+
+            <div class="col-lg-4 text-center d-none d-lg-block">
+                <!-- Декоративна іконка -->
+                <i class="bi bi-book-half"
+                   style="font-size: 6rem; color: #6D1F32; opacity: 0.15;"></i>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Блок пошуку (на всю ширину) -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-12">
+
+            <div class="card shadow-sm border-0"
+                 style="border-radius: 16px; background-color: #FFFFFF;">
+
+                <div class="card-body p-4">
+
+                    <form method="get"
+                          class="row g-3 align-items-center">
+
+                        <!-- Поле пошуку -->
+                        <div class="col-md-7">
+                            <div class="input-group">
+
+                                <span class="input-group-text bg-white border-end-0"
+                                      style="border-radius: 8px 0 0 8px;">
+                                    <i class="bi bi-search text-muted"></i>
+                                </span>
+
+                                <input type="text"
+                                       name="searchString"
+                                       value="@searchString"
+                                       class="form-control border-start-0"
+                                       placeholder="Пошук за назвою або описом..."
+                                       style="border-radius: 0 8px 8px 0;" />
+
+                            </div>
+                        </div>
+
+                        <!-- Фільтр категорій -->
+                        <div class="col-md-3">
+
+                            <select name="category"
+                                    class="form-select"
+                                    style="border-radius: 8px;">
+
+                                <option value="">
+                                    Всі категорії
+                                </option>
+
+                                <option value="Книга"
+                                        selected="@(selectedCategory == "Книга")">
+                                    Книга
+                                </option>
+
+                                <option value="Стаття"
+                                        selected="@(selectedCategory == "Стаття")">
+                                    Стаття
+                                </option>
+
+                                <option value="Відео"
+                                        selected="@(selectedCategory == "Відео")">
+                                    Відео
+                                </option>
+
+                                <option value="Файл"
+                                        selected="@(selectedCategory == "Файл")">
+                                    Файл
+                                </option>
+
+                            </select>
+                        </div>
+
+                        <!-- Кнопка Знайти -->
+                        <div class="col-md-2">
+
+                            <button type="submit"
+                                    class="btn btn-success w-100"
+                                    style="border-radius: 8px; padding: 0.75rem;">
+
+                                <i class="bi bi-search me-1"></i>
+                                Знайти
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Список матеріалів -->
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 bg-white rounded shadow-sm border"
+             style="border-color: #F2E8EA !important;">
+
+            @if (hasActiveFilters)
+            {
+                <!-- Матеріали не знайдено за запитом -->
+
+                <i class="bi bi-search"
+                   style="font-size: 4rem; color: #E8E0D5;"></i>
+
+                <h4 class="mt-3 fw-bold"
+                    style="color: #6D1F32;">
+                    За вашим запитом нічого не знайдено
+                </h4>
+
+                <p class="text-muted mb-3">
+                    Спробуйте змінити пошуковий запит
+                    або обрати іншу категорію матеріалів.
+                </p>
+
+                <a href="@Url.Action("Index")"
+                   class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>
+                    Скинути фільтри
+                </a>
+            }
+            else
+            {
+                <!-- Бібліотека дійсно порожня -->
+
+                <i class="bi bi-journal-x"
+                   style="font-size: 4rem; color: #E8E0D5;"></i>
+
+                <h4 class="mt-3 fw-bold"
+                    style="color: #6D1F32;">
+                    Бібліотека поки що порожня
+                </h4>
+
+                <p class="text-muted">
+                    Тут з'являться книги, статті та корисні файли.
+                </p>
+            }
+
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+
+            @foreach (var item in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+
+                    <div class="card h-100 shadow-sm border-0">
+
+                        <div class="card-body d-flex flex-column">
+
+                            <div class="d-flex justify-content-between
+                                        align-items-start mb-2">
+
+                                <!-- Бейдж категорії -->
+                                <span class="badge"
+                                      style="background-color: #F7F2F3;
+                                             color: #6D1F32;
+                                             border: 1px solid #E8E0D5;">
+
+                                    @item.Category
+
+                                </span>
+
+                            </div>
+
+                            <h5 class="card-title fw-bold"
+                                style="color: #40101F;">
+                                @item.Title
+                            </h5>
+
+                            <p class="card-text text-muted small flex-grow-1">
+                                @item.Description
+                            </p>
+
+                            <!-- Кнопки переходу -->
+                            <div class="mt-3">
+
+                                @if (!string.IsNullOrEmpty(item.FilePath))
+                                {
+                                    <a href="@item.FilePath"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       class="btn btn-outline-primary w-100 mb-2">
+
+                                        <i class="bi bi-download"></i>
+                                        Завантажити файл
+
+                                    </a>
+                                }
+
+                                @if (!string.IsNullOrEmpty(item.Url))
+                                {
+                                    <a href="@item.Url"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       class="btn btn-outline-primary w-100">
+
+                                        <i class="bi bi-link-45deg"></i>
+                                        Перейти до матеріалу
+
+                                    </a>
+                                }
+
+                            </div>
+
+                            <small class="text-muted mt-3">
+                                Додано: @item.CreatedAt.ToShortDateString()
+                            </small>
+
+                        </div>
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+
+</div>

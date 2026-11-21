@@ -1,0 +1,117 @@
+﻿
+@{
+    ViewData["Title"] = "Курси";
+    Layout = "~/Views/Shared/_TeacherLayout.cshtml";
+
+    var createdCourses = ViewBag.CreatedCourses
+        as List<EduPlatform.Models.Course>
+        ?? new List<EduPlatform.Models.Course>();
+}
+
+<!-- Заголовок сторінки -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0" style="color: #40101F;">
+        Курси
+    </h2>
+
+    <a asp-controller="Course"
+       asp-action="Create"
+       class="btn btn-success shadow-sm">
+        <i class="bi bi-plus-lg me-1"></i>
+        Створити новий курс
+    </a>
+</div>
+
+<!-- Опис сторінки -->
+<p class="text-muted mb-4">
+    Тут ви можете переглядати створені вами курси та керувати
+    їхніми матеріалами, тестами й студентами.
+</p>
+
+<!-- Авторські курси -->
+<div class="d-flex align-items-center mb-4">
+    <h4 class="fw-bold mb-0" style="color: #6D1F32;">
+        <i class="bi bi-pencil-square me-2"></i>
+        Авторські курси (@createdCourses.Count)
+    </h4>
+</div>
+
+@if (!createdCourses.Any())
+{
+    <div class="alert alert-info text-center py-4">
+        <i class="bi bi-journal-x fs-1 d-block mb-2"
+           style="color: #6D1F32;"></i>
+
+        Ви ще не створили жодного курсу.
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var course in createdCourses)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm">
+
+                    <div class="card-body d-flex flex-column">
+
+                        <h5 class="card-title fw-bold"
+                            style="color: #40101F;">
+                            @course.Title
+                        </h5>
+
+                        <p class="card-text text-muted small flex-grow-1">
+                            @course.Description
+                        </p>
+
+                        <div class="d-flex justify-content-between
+                                    text-muted small mb-3">
+
+                            <span>
+                                <i class="bi bi-journal-text"></i>
+                                Модулів: @(course.Modules?.Count ?? 0)
+                            </span>
+
+                            <span>
+                                <i class="bi bi-people"></i>
+                                Студентів: @(course.Enrollments?.Count ?? 0)
+                            </span>
+
+                        </div>
+
+                        <div class="d-flex gap-2">
+
+                            <a asp-controller="Teacher"
+                               asp-action="ManageCourse"
+                               asp-route-id="@course.Id"
+                               class="btn btn-sm btn-outline-primary w-50">
+
+                                <i class="bi bi-gear"></i>
+                                Керувати
+                            </a>
+
+                            <form asp-controller="Course"
+                                  asp-action="Delete"
+                                  asp-route-id="@course.Id"
+                                  method="post"
+                                  onsubmit="return confirm('Ви впевнені, що хочете видалити цей курс?');"
+                                  class="w-50">
+
+                                @Html.AntiForgeryToken()
+
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger w-100">
+
+                                    <i class="bi bi-trash"></i>
+                                    Видалити
+                                </button>
+
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

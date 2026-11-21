@@ -1,0 +1,97 @@
+﻿@{
+    ViewData["Title"] = "Про платформу";
+}
+
+<div class="container py-5">
+    <!-- Hero Section -->
+    <div class="row align-items-center mb-5">
+        <div class="col-lg-6">
+            <h1 class="display-4 fw-bold mb-3" style="color: #40101F;">Про <span style="color: #70243B;">EduPlatform</span></h1>
+            <p class="lead text-muted mb-4">
+                EduPlatform — це сучасна освітня платформа для вивчення IT-технологій, програмування та комп'ютерних дисциплін. 
+                Ми створили комфортне середовище, де кожен може навчатися у власному темпі, перевіряти знання та відстежувати свій прогрес.
+            </p>
+            <a asp-controller="Course" asp-action="Index" class="btn btn-primary btn-lg">Переглянути курси</a>
+        </div>
+        <div class="col-lg-6 text-center">
+            <img src="~/images/logo.png" alt="EduPlatform" class="img-fluid" style="max-width: 300px; border-radius: 50%; box-shadow: 0 20px 40px rgba(64, 16, 31, 0.15);" />
+        </div>
+    </div>
+
+    <hr class="my-5" style="border-color: #F2E8EA;" />
+
+    <!-- Наші переваги -->
+    <h2 class="text-center fw-bold mb-4" style="color: #40101F;">Чому обирають нас?</h2>
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm text-center p-3">
+                <div class="card-body">
+                    <i class="bi bi-laptop fs-1 mb-3" style="color: #70243B;"></i>
+                    <h5 class="card-title fw-bold">Практичні курси</h5>
+                    <p class="card-text text-muted">Курси з веб-розробки, C#, баз даних та інших IT-напрямків.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm text-center p-3">
+                <div class="card-body">
+                    <i class="bi bi-check2-square fs-1 mb-3" style="color: #70243B;"></i>
+                    <h5 class="card-title fw-bold">Інтерактивні тести</h5>
+                    <p class="card-text text-muted">Перевіряйте знання одразу після кожного модуля з автоматичною перевіркою.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm text-center p-3">
+                <div class="card-body">
+                    <i class="bi bi-graph-up-arrow fs-1 mb-3" style="color: #70243B;"></i>
+                    <h5 class="card-title fw-bold">Відстеження прогресу</h5>
+                    <p class="card-text text-muted">Слідкуйте за своїми результатами, балами та завершеними модулями.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm text-center p-3">
+                <div class="card-body">
+                    <i class="bi bi-journal-bookmark fs-1 mb-3" style="color: #70243B;"></i>
+                    <h5 class="card-title fw-bold">Бібліотека матеріалів</h5>
+                    <p class="card-text text-muted">Доступ до книг, статей та корисних файлів від викладачів.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm text-center p-3">
+                <div class="card-body">
+                    <i class="bi bi-person-badge fs-1 mb-3" style="color: #70243B;"></i>
+                    <h5 class="card-title fw-bold">Два кабінети</h5>
+                    <p class="card-text text-muted">Окремий простір для студентів та викладачів зі своїми інструментами.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm text-center p-3">
+                <div class="card-body">
+                    <i class="bi bi-shield-lock fs-1 mb-3" style="color: #70243B;"></i>
+                    <h5 class="card-title fw-bold">Безпека</h5>
+                    <p class="card-text text-muted">Серверна перевірка прав доступу та збереження ваших даних.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA (Call to Action) -->
+    <div class="text-center p-5 rounded" style="background-color: #FDFBF7; border: 1px solid #F2E8EA;">
+        <h2 class="fw-bold mb-3" style="color: #40101F;">Готові почати навчання?</h2>
+        <p class="text-muted mb-4">Приєднуйтесь до спільноти студентів, які вже опановують IT-професії.</p>
+        
+        @if (Context.Session.GetString("UserRole") == null)
+        {
+            <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-lg me-2">Зареєструватися</a>
+            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary btn-lg">Увійти</a>
+        }
+        else
+        {
+            <a asp-controller="Course" asp-action="Index" class="btn btn-primary btn-lg">Перейти до курсів</a>
+        }
+    </div>
+</div>

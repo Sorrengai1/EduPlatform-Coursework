@@ -1,0 +1,395 @@
+﻿
+@{
+    ViewData["Title"] = "Додати матеріал";
+}
+
+<style>
+    .library-create-page {
+        background: #FDFBF7;
+        min-height: 80vh;
+        padding: 48px 0 70px;
+    }
+
+    .library-create-card {
+        background: #FFFFFF;
+        border: 1px solid #E8E7E0;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 35px rgba(64, 16, 31, 0.07);
+    }
+
+    .library-create-header {
+        background: linear-gradient(
+            120deg,
+            #6D1F32,
+            #853C50
+        );
+        color: white;
+        padding: 28px 34px;
+    }
+
+    .library-create-header h3 {
+        font-weight: 700;
+        font-size: 1.45rem;
+        margin-bottom: 7px;
+    }
+
+    .library-create-header p {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.92rem;
+        margin-bottom: 0;
+    }
+
+    .library-create-body {
+        padding: 34px;
+    }
+
+    .library-form-label {
+        color: #40101F;
+        font-size: 0.94rem;
+        font-weight: 600;
+        margin-bottom: 9px;
+    }
+
+    .library-required {
+        color: #B74355;
+    }
+
+    .library-create-page .form-control,
+    .library-create-page .form-select {
+        border: 1px solid #DCDDD7;
+        border-radius: 11px;
+        padding: 12px 14px;
+        background: #FFFFFF;
+        color: #333333;
+        transition: all 0.2s ease;
+    }
+
+    .library-create-page .form-control:focus,
+    .library-create-page .form-select:focus {
+        border-color: #6D1F32;
+        box-shadow: 0 0 0 3px rgba(109, 31, 50, 0.10);
+        outline: none;
+    }
+
+    .library-create-page textarea {
+        resize: vertical;
+        min-height: 110px;
+    }
+
+    .library-help-text {
+        font-size: 0.83rem;
+        color: #777D77;
+        margin-top: 7px;
+    }
+
+    .library-section-title {
+        color: #3D5C4B;
+        font-size: 0.95rem;
+        font-weight: 700;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #E6EAE4;
+    }
+
+    .library-file-box {
+        background: #F4F7F3;
+        border: 1px dashed #A9BEAF;
+        border-radius: 14px;
+        padding: 22px;
+    }
+
+    .library-file-icon {
+        color: #3D5C4B;
+        font-size: 1.5rem;
+        margin-right: 10px;
+    }
+
+    .library-create-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        border-top: 1px solid #EAEAE5;
+        margin-top: 30px;
+        padding-top: 25px;
+    }
+
+    .library-btn-save {
+        background: #6D1F32;
+        color: white;
+        border: 1px solid #6D1F32;
+        border-radius: 11px;
+        padding: 12px 25px;
+        font-weight: 600;
+        transition: 0.2s ease;
+    }
+
+    .library-btn-save:hover {
+        background: #501526;
+        border-color: #501526;
+        color: white;
+    }
+
+    .library-btn-cancel {
+        background: #FFFFFF;
+        color: #3D5C4B;
+        border: 1px solid #B9C9BE;
+        border-radius: 11px;
+        padding: 12px 24px;
+        font-weight: 600;
+        transition: 0.2s ease;
+    }
+
+    .library-btn-cancel:hover {
+        background: #EDF2ED;
+        color: #304B3B;
+    }
+
+    .library-error {
+        background: #FFF3F3;
+        border: 1px solid #E8C5CA;
+        border-left: 4px solid #A7354A;
+        color: #79283A;
+        border-radius: 10px;
+        padding: 15px 18px;
+        margin-bottom: 25px;
+    }
+
+    @@media (max-width: 576px) {
+        .library-create-page {
+            padding: 24px 0 40px;
+        }
+
+        .library-create-header,
+        .library-create-body {
+            padding: 23px 20px;
+        }
+
+        .library-create-actions {
+            flex-direction: column-reverse;
+        }
+
+        .library-btn-save,
+        .library-btn-cancel {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+
+<div class="library-create-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+
+                <div class="mb-4">
+                    <a asp-controller="Library"
+                       asp-action="Index"
+                       class="text-decoration-none"
+                       style="color: #3D5C4B; font-weight: 600;">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        Повернутися до бібліотеки
+                    </a>
+                </div>
+
+                <div class="library-create-card">
+
+                    <div class="library-create-header">
+                        <h3>
+                            <i class="bi bi-journal-plus me-2"></i>
+                            Додати новий матеріал
+                        </h3>
+                        <p>
+                            Поділіться корисними навчальними
+                            матеріалами зі студентами платформи.
+                        </p>
+                    </div>
+
+                    <div class="library-create-body">
+
+                        @if (ViewBag.Error != null)
+                        {
+                            <div class="library-error"
+                                 role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                @ViewBag.Error
+                            </div>
+                        }
+
+                        <form asp-controller="Library"
+                              asp-action="Create"
+                              method="post"
+                              enctype="multipart/form-data"
+                              asp-antiforgery="true">
+
+                            <div class="library-section-title">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Основна інформація
+                            </div>
+
+                            <!-- Назва матеріалу -->
+                            <div class="mb-4">
+                                <label for="title"
+                                       class="library-form-label">
+                                    Назва матеріалу
+                                    <span class="library-required">*</span>
+                                </label>
+
+                                <input type="text"
+                                       id="title"
+                                       name="title"
+                                       class="form-control"
+                                       placeholder="Наприклад: Основи Python для початківців"
+                                       maxlength="150"
+                                       required />
+
+                                <div class="library-help-text">
+                                    Вкажіть коротку та зрозумілу назву
+                                    навчального матеріалу.
+                                </div>
+                            </div>
+
+                            <!-- Опис матеріалу -->
+                            <div class="mb-4">
+                                <label for="description"
+                                       class="library-form-label">
+                                    Опис матеріалу
+                                    <span class="library-required">*</span>
+                                </label>
+
+                                <textarea id="description"
+                                          name="description"
+                                          class="form-control"
+                                          rows="4"
+                                          maxlength="3000"
+                                          placeholder="Опишіть зміст матеріалу та його користь для навчання..."
+                                          required></textarea>
+
+                                <div class="library-help-text">
+                                    До 3000 символів.
+                                </div>
+                            </div>
+
+                            <!-- Категорія -->
+                            <div class="mb-4">
+                                <label for="category"
+                                       class="library-form-label">
+                                    Категорія
+                                    <span class="library-required">*</span>
+                                </label>
+
+                                <select id="category"
+                                        name="category"
+                                        class="form-select"
+                                        required>
+                                    <option value="Книга">
+                                        Книга
+                                    </option>
+                                    <option value="Стаття">
+                                        Стаття
+                                    </option>
+                                    <option value="Відео">
+                                        Відео
+                                    </option>
+                                    <option value="Файл">
+                                        Файл
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="library-section-title mt-4">
+                                <i class="bi bi-paperclip me-2"></i>
+                                Навчальний ресурс
+                            </div>
+
+                            <!-- Посилання -->
+                            <div class="mb-4">
+                                <label for="url"
+                                       class="library-form-label">
+                                    Посилання на ресурс
+                                </label>
+
+                                <div class="input-group">
+                                    <span class="input-group-text"
+                                          style="background: #F4F7F3;
+                                                 border-color: #DCDDD7;
+                                                 color: #3D5C4B;">
+                                        <i class="bi bi-link-45deg"></i>
+                                    </span>
+
+                                    <input type="url"
+                                           id="url"
+                                           name="url"
+                                           class="form-control"
+                                           maxlength="2048"
+                                           placeholder="https://example.com/material" />
+                                </div>
+
+                                <div class="library-help-text">
+                                    Додайте посилання на статтю,
+                                    відео, електронну книгу або
+                                    інший навчальний ресурс.
+                                </div>
+                            </div>
+
+                            <!-- Завантаження файлу -->
+                            <div class="library-file-box">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="bi bi-cloud-arrow-up library-file-icon"></i>
+
+                                    <div>
+                                        <div class="library-form-label mb-1">
+                                            Завантажити файл
+                                        </div>
+                                        <div class="library-help-text mt-0">
+                                            За потреби прикріпіть документ.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <input type="file"
+                                       id="libraryFile"
+                                       name="file"
+                                       class="form-control"
+                                       accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+
+                                <div class="library-help-text mt-3">
+                                    <i class="bi bi-shield-check me-1"></i>
+                                    Дозволені формати: PDF, DOCX.
+                                    Максимальний розмір: 5 МБ.
+                                </div>
+                            </div>
+
+                            <div class="library-help-text mt-3">
+                                <i class="bi bi-lightbulb me-1"
+                                   style="color: #3D5C4B;"></i>
+                                Можна додати посилання, файл
+                                або обидва ресурси одночасно.
+                            </div>
+
+                            <!-- Кнопки -->
+                            <div class="library-create-actions">
+
+                                <a asp-controller="Library"
+                                   asp-action="Index"
+                                   class="btn library-btn-cancel">
+                                    <i class="bi bi-x-lg me-2"></i>
+                                    Скасувати
+                                </a>
+
+                                <button type="submit"
+                                        class="btn library-btn-save">
+                                    <i class="bi bi-check2-circle me-2"></i>
+                                    Зберегти матеріал
+                                </button>
+
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

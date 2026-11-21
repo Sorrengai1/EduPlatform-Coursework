@@ -1,0 +1,798 @@
+/* =========================================================
+   EduPlatform — загальна дизайн-система
+   ========================================================= */
+:root {
+    --bg-color: #F7F2F3;
+    --text-color: #2D1B20;
+    --primary-color: #6D1F32;
+    --primary-hover: #843B4B;
+    --accent-color: #A65360;
+    --success-color: #3D5C4B;
+    --success-hover: #263F35;
+    --surface-color: #FDFBF7;
+    --white-color: #FFFFFF;
+    --border-color: #F2E8EA;
+    --sidebar-color: #40101F;
+    --sidebar-text: #E5C6C2;
+    --card-shadow: 0 4px 20px rgba(109, 31, 50, 0.08);
+    --sidebar-width: 260px;
+}
+
+/* 1. Базові правила */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html {
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-wrap: break-word;
+}
+
+img, video, svg {
+    max-width: 100%;
+}
+
+img, video {
+    height: auto;
+}
+
+a {
+    text-underline-offset: 3px;
+}
+
+:focus-visible {
+    outline: 3px solid var(--accent-color);
+    outline-offset: 2px;
+}
+
+/* 2. Звичайні сторінки: шапка, контент, футер.
+   Сітка активується для стандартного макета з header та footer.
+   Для надійного розділення макетів додайте class="public-layout" на body
+   у Views/Shared/_Layout.cshtml. */
+body.public-layout,
+body:has(> header):has(> .container.flex-grow-1):has(> footer.footer) {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+    body.public-layout > header {
+        grid-row: 1;
+        min-width: 0;
+    }
+
+    body.public-layout > .container.flex-grow-1,
+    body.public-layout > main.flex-grow-1 {
+        grid-row: 2;
+        width: 100%;
+        max-width: 1600px;
+        min-width: 0;
+        margin-inline: auto;
+        padding: 40px 60px;
+    }
+
+    body.public-layout > .footer,
+    body.public-layout > footer {
+        grid-row: 3;
+    }
+
+/* Сумісність зі старим _Layout без класу public-layout:
+   основний контейнер залишається акуратно оформленим. */
+.container.flex-grow-1 {
+    width: 100%;
+    max-width: 1600px;
+    min-width: 0;
+    margin-inline: auto;
+    padding: 40px 60px;
+}
+
+.footer {
+    width: 100%;
+    padding: 20px 0;
+    background: var(--white-color);
+    border-top: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+
+/* 3. Верхня навігація */
+.navbar {
+    background: var(--white-color) !important;
+    box-shadow: 0 2px 15px rgba(109, 31, 50, 0.08);
+    border-bottom: 4px solid var(--primary-color);
+    padding: 1.2rem 2rem;
+}
+
+.navbar-brand span {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary-color) !important;
+}
+
+.navbar .nav-link {
+    font-weight: 500;
+    color: var(--text-color) !important;
+    transition: color .2s ease;
+}
+
+    .navbar .nav-link:hover,
+    .navbar .nav-link.active {
+        color: var(--primary-color) !important;
+    }
+
+/* 4. Кнопки */
+.btn-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: #fff !important;
+    border-radius: 8px;
+    font-weight: 600;
+    padding: .6rem 1.5rem;
+    transition: background-color .2s, border-color .2s, transform .2s;
+}
+
+    .btn-primary:hover, .btn-primary:focus-visible {
+        background-color: var(--primary-hover) !important;
+        border-color: var(--primary-hover) !important;
+    }
+
+.btn-outline-primary {
+    color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+    .btn-outline-primary:hover, .btn-outline-primary:focus-visible {
+        background-color: var(--primary-color) !important;
+        color: #fff !important;
+    }
+
+.btn-success {
+    background-color: var(--success-color) !important;
+    border-color: var(--success-color) !important;
+    color: #fff !important;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+    .btn-success:hover, .btn-success:focus-visible {
+        background-color: var(--success-hover) !important;
+        border-color: var(--success-hover) !important;
+    }
+
+.btn:disabled, .btn.disabled {
+    transform: none !important;
+}
+
+/* 5. Картки, поля форм */
+.card {
+    min-width: 0;
+    border: none;
+    border-radius: 16px;
+    background: var(--surface-color);
+    box-shadow: var(--card-shadow);
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(109, 31, 50, .12);
+    }
+
+.form-control, .form-select {
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid #DCD3C8;
+    padding: .75rem 1rem;
+}
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 .25rem rgba(109, 31, 50, .15);
+    }
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.form-check-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 .25rem rgba(109, 31, 50, .15);
+}
+
+/* 6. Таблиці */
+.table {
+    background: var(--white-color);
+    color: var(--text-color);
+    margin-bottom: 0;
+}
+
+    .table thead th {
+        background: var(--bg-color);
+        border-bottom: 2px solid var(--primary-color);
+        color: var(--sidebar-color) !important;
+        font-weight: 600;
+        padding: 1rem;
+    }
+
+    .table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-color);
+    }
+
+.table-responsive {
+    max-width: 100%;
+    border-radius: 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 7. Головна сторінка */
+.stat-card {
+    height: 100%;
+    min-width: 0;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(109, 31, 50, .03);
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(109, 31, 50, .1);
+    }
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-color);
+    border-radius: 50%;
+    color: var(--primary-color);
+    font-size: 1.5rem;
+}
+
+.category-card {
+    min-width: 0;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+    .category-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(109, 31, 50, .15);
+        border-color: var(--primary-color);
+    }
+
+        .category-card:hover .category-icon i {
+            color: var(--sidebar-color) !important;
+        }
+
+.hero-title {
+    font-size: clamp(2.25rem, 5vw, 4rem);
+    font-weight: 800;
+    color: var(--sidebar-color);
+    line-height: 1.1;
+    letter-spacing: -.035em;
+}
+
+    .hero-title span {
+        background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: var(--primary-color);
+        font-weight: 900;
+    }
+
+/* 8. Бібліотека */
+.library-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding: 3rem;
+    background: linear-gradient(135deg, var(--bg-color), var(--surface-color));
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(109, 31, 50, .05);
+}
+
+    .library-hero::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(109, 31, 50, .08), transparent 70%);
+        border-radius: 50%;
+        z-index: -1;
+        pointer-events: none;
+    }
+
+/* 9. Кабінети студента та викладача */
+.app-container {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+}
+
+.sidebar-dark {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 var(--sidebar-width);
+    width: var(--sidebar-width);
+    min-width: 0;
+    min-height: 0;
+    background: var(--sidebar-color);
+    color: var(--sidebar-text);
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fff;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+    transition: background-color .2s ease;
+}
+
+    .sidebar-header:hover {
+        background: rgba(255,255,255,.05);
+        color: #fff;
+    }
+
+.sidebar-nav {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 20px 10px;
+    overflow-y: auto;
+}
+
+    .sidebar-nav .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 5px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: var(--sidebar-text) !important;
+        font-weight: 500;
+        transition: background-color .2s ease, color .2s ease;
+    }
+
+        .sidebar-nav .nav-link:hover {
+            background: rgba(255,255,255,.1);
+            color: #fff !important;
+        }
+
+        .sidebar-nav .nav-link.active {
+            background: var(--success-color);
+            color: #fff !important;
+        }
+
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid rgba(255,255,255,.1);
+}
+
+.main-content {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--bg-color);
+}
+
+.top-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex: 0 0 auto;
+    min-width: 0;
+    min-height: 70px;
+    padding: 12px 30px;
+    background: #fff;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.content-area {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    padding: 30px;
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 10. Планшети */
+@media (max-width: 991.98px) {
+    .container.flex-grow-1,
+    body.public-layout > .container.flex-grow-1,
+    body.public-layout > main.flex-grow-1 {
+        padding: 30px 24px;
+    }
+
+    .navbar {
+        padding: 1rem 1.5rem;
+    }
+
+    .sidebar-dark {
+        flex-basis: 220px;
+        width: 220px;
+    }
+
+    .sidebar-nav .nav-link {
+        padding: 11px 14px;
+    }
+
+    .content-area {
+        padding: 24px;
+    }
+
+    .library-hero {
+        padding: 2rem;
+    }
+}
+
+/* 11. Мобільні пристрої */
+@media (max-width: 767.98px) {
+    .container.flex-grow-1,
+    body.public-layout > .container.flex-grow-1,
+    body.public-layout > main.flex-grow-1 {
+        padding: 20px 15px;
+    }
+
+    .navbar {
+        padding: .9rem 1rem;
+    }
+
+    .navbar-brand span {
+        font-size: 1.25rem;
+    }
+
+    .hero-title {
+        font-size: clamp(2rem, 9vw, 2.6rem);
+        letter-spacing: -.025em;
+    }
+
+    .library-hero {
+        padding: 1.5rem;
+    }
+
+    .content-area {
+        padding: 18px 14px;
+    }
+
+    .top-navbar {
+        min-height: 60px;
+        height: auto;
+        padding: 12px 14px;
+        flex-wrap: wrap;
+    }
+
+    .table thead th, .table tbody td {
+        padding: .75rem;
+    }
+
+    .stat-icon {
+        width: 52px;
+        height: 52px;
+    }
+
+    /* Без JS-меню: бокова панель стає верхньою горизонтальною навігацією. */
+    .app-container {
+        flex-direction: column;
+    }
+
+    .sidebar-dark {
+        flex: 0 0 auto;
+        width: 100%;
+        max-height: 42vh;
+    }
+
+    .sidebar-header {
+        padding: 12px 16px;
+        font-size: 1.15rem;
+    }
+
+    .sidebar-nav {
+        display: flex;
+        flex: 0 1 auto;
+        gap: 6px;
+        padding: 8px 12px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: thin;
+    }
+
+        .sidebar-nav .nav-link {
+            flex: 0 0 auto;
+            white-space: nowrap;
+            margin-bottom: 0;
+            padding: 9px 12px;
+        }
+
+    .sidebar-footer {
+        padding: 8px 12px;
+    }
+
+    .main-content {
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+}
+
+@media (max-width: 359.98px) {
+    .container.flex-grow-1,
+    body.public-layout > .container.flex-grow-1,
+    body.public-layout > main.flex-grow-1 {
+        padding: 16px 12px;
+    }
+
+    .content-area {
+        padding: 14px 10px;
+    }
+
+    .btn-primary {
+        padding: .55rem 1rem;
+    }
+}
+
+/* 12. Доступність: менше руху за налаштуваннями користувача */
+@media (prefers-reduced-motion: reduce) {
+    .card, .stat-card, .category-card, .btn-primary,
+    .nav-link, .sidebar-header {
+        transition: none !important;
+    }
+
+        .card:hover, .stat-card:hover, .category-card:hover,
+        .btn-primary:hover {
+            transform: none !important;
+        }
+}
+
+
+/* ==========================================
+   КАТАЛОГ КУРСІВ — КОМПАКТНІ КАРТКИ
+   ========================================== */
+
+.catalog-course-card {
+    border-radius: 16px;
+    overflow: hidden;
+    background-color: #FDFBF7;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+    .catalog-course-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 28px rgba(64, 16, 31, 0.12) !important;
+    }
+
+/* Обкладинка */
+.catalog-course-cover {
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #6D1F32, #40101F);
+}
+
+.catalog-course-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background-color: #FDFBF7;
+}
+
+/* Обкладинка за відсутності зображення */
+.catalog-course-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .catalog-course-placeholder i {
+        font-size: 3.5rem;
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+/* Назва курсу — максимум два рядки */
+.catalog-course-title {
+    color: #40101F;
+    font-size: 1.15rem;
+    line-height: 1.4;
+    min-height: 2.8em;
+    margin-bottom: 10px;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+}
+
+/* Опис курсу — максимум три рядки */
+.catalog-course-description {
+    line-height: 1.6;
+    height: 4.8em;
+    margin-bottom: 18px;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+}
+
+/* Інформація про модулі та тривалість */
+.catalog-course-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 14px;
+    margin-bottom: 16px;
+    border-top: 1px solid #F2E8EA;
+}
+
+/* Кнопка */
+.catalog-course-button {
+    padding: 11px 16px;
+    border-radius: 9px;
+    font-weight: 600;
+}
+
+/* Адаптація для невеликих екранів */
+@media (max-width: 767px) {
+    .catalog-course-cover {
+        height: 190px;
+    }
+
+    .catalog-course-title {
+        min-height: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .catalog-course-card {
+        transition: none;
+    }
+
+        .catalog-course-card:hover {
+            transform: none;
+        }
+}
+/* Компактні картки курсів на головній сторінці */
+
+.home-course-description {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+    line-height: 1.6;
+    height: 4.8em;
+    margin-bottom: 16px;
+}
+
+/* Обкладинка курсу */
+.home-course-cover {
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #6D1F32, #40101F);
+}
+
+.home-course-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background-color: #FDFBF7;
+}
+
+/* Обкладинка без зображення */
+.home-course-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Короткий опис курсу в картках */
+.course-description {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+    line-height: 1.6;
+    min-height: 4.8em;
+    overflow-wrap: anywhere;
+}
+/* Зелений колір номерів питань */
+.badge.bg-primary.rounded-circle {
+    background-color: #3D5C4B !important;
+    color: #FFFFFF !important;
+}
+
+/* Зелений колір лічильника питань */
+.badge.bg-primary:not(.rounded-circle) {
+    background-color: #E3ECE5 !important;
+    color: #3D5C4B !important;
+}
+
+/* Прогрес навчання в кабінеті студента */
+.course-progress-box {
+    background-color: #F1F5F0;
+    border: 1px solid #E1E9DF;
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.course-progress-percent {
+    background-color: #D7E0D3;
+    color: #3D5C4B;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 7px 12px;
+    border-radius: 9px;
+}
+
+.course-progress-track {
+    height: 10px;
+    background-color: #DCE5DA;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.course-progress-fill {
+    background-color: #3D5C4B;
+    border-radius: 20px;
+    transition: width 0.4s ease;
+}
+.answer-correct {
+    background-color: #E5F2EB !important;
+    border: 1px solid #3D8B65 !important;
+    border-radius: 8px !important;
+}
+.answer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+    .answer-list .list-group-item {
+        margin-top: 0 !important;
+        border-radius: 8px !important;
+    }

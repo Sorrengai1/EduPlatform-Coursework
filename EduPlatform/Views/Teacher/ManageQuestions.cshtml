@@ -1,0 +1,546 @@
+﻿
+@model IEnumerable<EduPlatform.Models.Question>
+
+@{
+    ViewData["Title"] = "Питання тесту";
+    Layout = "~/Views/Shared/_TeacherLayout.cshtml";
+
+    var existingQuestions = Model.OrderBy(q => q.Id).ToList();
+    var existingCount = existingQuestions.Count;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold" style="color: #40101F;">
+            Питання: @ViewBag.ModuleTitle
+        </h2>
+        <p class="text-muted mb-0">Курс: @ViewBag.CourseTitle</p>
+    </div>
+
+    <a asp-action="MyTests" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Назад до тестів
+    </a>
+</div>
+
+<!-- Форма для додавання нових питань -->
+<div class="card shadow-sm border-0 mb-5">
+    <div class="card-header text-white" style="background-color: #6D1F32;">
+        <h5 class="mb-0">
+            <i class="bi bi-plus-circle me-2"></i>
+            Додати нові питання
+        </h5>
+    </div>
+
+    <div class="card-body p-4">
+        <form asp-action="CreateMultipleQuestions"
+              method="post"
+              id="multipleQuestionsForm"
+              asp-antiforgery="true"
+              novalidate>
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    @TempData["Error"]
+                </div>
+            }
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success" role="status">
+                    <i class="bi bi-check-circle me-2"></i>
+                    @TempData["Success"]
+                </div>
+            }
+
+            <input type="hidden"
+                   name="moduleId"
+                   value="@ViewBag.ModuleId" />
+
+            <input type="hidden"
+                   name="correctIndexesJson"
+                   id="correctIndexesJson"
+                   value="[]" />
+
+            <div id="questionsContainer">
+
+                <div class="question-block border rounded p-3 mb-3"
+                     data-index="0">
+
+                    <div class="d-flex justify-content-between
+                                align-items-center mb-2">
+
+                        <h6 class="fw-bold mb-0" style="color: #6D1F32;">
+                            Питання @(existingCount + 1)
+                        </h6>
+                    </div>
+
+                    <div class="mb-2">
+                        <input type="text"
+                               name="questionTexts"
+                               class="form-control"
+                               placeholder="Текст питання"
+                               required />
+                    </div>
+
+                    <div class="options-container">
+
+                        <div class="input-group mb-2">
+                            <div class="input-group-text">
+                                <input type="checkbox"
+                                       class="correct-checkbox"
+                                       value="0" />
+                            </div>
+
+                            <input type="text"
+                                   name="option"
+                                   class="form-control"
+                                   placeholder="Варіант 1"
+                                   required />
+                        </div>
+
+                        <div class="input-group mb-2">
+                            <div class="input-group-text">
+                                <input type="checkbox"
+                                       class="correct-checkbox"
+                                       value="1" />
+                            </div>
+
+                            <input type="text"
+                                   name="option"
+                                   class="form-control"
+                                   placeholder="Варіант 2"
+                                   required />
+                        </div>
+
+                    </div>
+
+                    <button type="button"
+                            class="btn btn-sm btn-outline-secondary add-option-btn">
+                        + Додати варіант
+                    </button>
+
+                    <div class="question-error text-danger small mt-2 d-none"
+                         role="alert"></div>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button"
+                        class="btn btn-outline-primary"
+                        id="addQuestionBtn">
+                    <i class="bi bi-plus-lg"></i>
+                    Додати ще питання
+                </button>
+
+                <button type="submit" class="btn btn-success">
+                    Зберегти всі питання
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- Список існуючих питань -->
+<h4 class="fw-bold mb-3" style="color: #40101F;">
+    Вже створені питання
+</h4>
+
+@if (!existingQuestions.Any())
+{
+    <div class="alert alert-info text-center py-4">
+        <i class="bi bi-question-circle fs-1 d-block mb-2"
+           style="color: #6D1F32;"></i>
+
+        У цьому тесті ще немає питань.
+    </div>
+}
+else
+{
+    <div class="row g-3">
+
+        @for (int i = 0; i < existingQuestions.Count; i++)
+        {
+            var question = existingQuestions[i];
+
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between
+                                    align-items-start gap-2">
+
+                            <h5 class="fw-bold mb-2"
+                                style="color: #40101F;">
+                                Питання @(i + 1). @question.Text
+                            </h5>
+
+                            <div class="d-flex gap-2">
+
+                                <span class="badge bg-secondary">
+                                    @question.Answers.Count варіантів
+                                </span>
+
+                                <a asp-action="EditQuestion"
+                                   asp-route-id="@question.Id"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil"></i>
+                                    Редагувати
+                                </a>
+
+                                <form asp-action="DeleteQuestion"
+                                      method="post"
+                                      asp-antiforgery="true"
+                                      onsubmit="return confirm('Ви впевнені, що хочете видалити це питання?');"
+                                      class="d-inline">
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@question.Id" />
+
+                                    <button type="submit"
+                                            class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                        Видалити
+                                    </button>
+                                </form>
+
+                            </div>
+                        </div>
+
+                        <ul class="list-group list-group-flush mt-3">
+
+                            @foreach (var answer in question.Answers.OrderBy(a => a.Id))
+                            {
+                                <li class="list-group-item d-flex align-items-center
+                                    @(answer.IsCorrect ? "bg-light" : "")">
+
+                                    @if (answer.IsCorrect)
+                                    {
+                                        <i class="bi bi-check-circle-fill
+                                                  text-success me-2"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-circle
+                                                  text-muted me-2"></i>
+                                    }
+
+                                    @answer.Text
+                                </li>
+                            }
+
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+<script>
+(() => {
+    const form = document.getElementById('multipleQuestionsForm');
+    const container = document.getElementById('questionsContainer');
+    const addQuestion = document.getElementById('addQuestionBtn');
+    const existingCount = @existingCount;
+
+    function renumber() {
+        const blocks = container.querySelectorAll('.question-block');
+
+        blocks.forEach((block, i) => {
+            block.dataset.index = i;
+
+            block.querySelector('h6').textContent =
+                `Питання ${existingCount + i + 1}`;
+
+            renumberOptions(block);
+        });
+    }
+
+    function renumberOptions(block) {
+        const rows = block.querySelectorAll(
+            '.options-container .input-group'
+        );
+
+        rows.forEach((row, i) => {
+            row.querySelector('.correct-checkbox').value = i;
+
+            row.querySelector('input[name="option"]').placeholder =
+                `Варіант ${i + 1}`;
+        });
+    }
+
+    function showError(block, message) {
+        const error = block.querySelector('.question-error');
+
+        error.textContent = message;
+        error.classList.remove('d-none');
+
+        block.classList.add('border-danger');
+    }
+
+    function clearError(block) {
+        const error = block.querySelector('.question-error');
+
+        error.classList.add('d-none');
+        error.textContent = '';
+
+        block.classList.remove('border-danger');
+    }
+
+    // Додавання нового питання
+    addQuestion.addEventListener('click', () => {
+        const block = document.createElement('div');
+
+        block.className =
+            'question-block border rounded p-3 mb-3';
+
+        block.innerHTML = `
+            <div class="d-flex justify-content-between
+                        align-items-center mb-2">
+
+                <h6 class="fw-bold mb-0"
+                    style="color:#6D1F32"></h6>
+
+                <button type="button"
+                        class="btn btn-sm btn-outline-danger remove-question">
+                    Видалити
+                </button>
+            </div>
+
+            <div class="mb-2">
+                <input type="text"
+                       name="questionTexts"
+                       class="form-control"
+                       placeholder="Текст питання"
+                       required />
+            </div>
+
+            <div class="options-container">
+                <div class="input-group mb-2">
+                    <div class="input-group-text">
+                        <input type="checkbox"
+                               class="correct-checkbox"
+                               value="0" />
+                    </div>
+
+                    <input type="text"
+                           name="option"
+                           class="form-control"
+                           placeholder="Варіант 1"
+                           required />
+                </div>
+
+                <div class="input-group mb-2">
+                    <div class="input-group-text">
+                        <input type="checkbox"
+                               class="correct-checkbox"
+                               value="1" />
+                    </div>
+
+                    <input type="text"
+                           name="option"
+                           class="form-control"
+                           placeholder="Варіант 2"
+                           required />
+                </div>
+            </div>
+
+            <button type="button"
+                    class="btn btn-sm btn-outline-secondary add-option-btn">
+                + Додати варіант
+            </button>
+
+            <div class="question-error text-danger small mt-2 d-none"
+                 role="alert"></div>
+        `;
+
+        container.appendChild(block);
+        renumber();
+    });
+
+    // Додавання та видалення питань і варіантів
+    container.addEventListener('click', e => {
+        const block = e.target.closest('.question-block');
+
+        if (!block) return;
+
+        if (e.target.closest('.remove-question')) {
+            block.remove();
+            renumber();
+        }
+        else if (e.target.closest('.add-option-btn')) {
+            const options = block.querySelector('.options-container');
+
+            const row = document.createElement('div');
+            row.className = 'input-group mb-2';
+
+            row.innerHTML = `
+                <div class="input-group-text">
+                    <input type="checkbox"
+                           class="correct-checkbox" />
+                </div>
+
+                <input type="text"
+                       name="option"
+                       class="form-control"
+                       required />
+
+                <button type="button"
+                        class="btn btn-outline-danger remove-option">
+                    Видалити
+                </button>
+            `;
+
+            options.appendChild(row);
+            renumberOptions(block);
+        }
+        else if (e.target.closest('.remove-option')) {
+            e.target.closest('.input-group').remove();
+            renumberOptions(block);
+        }
+    });
+
+    container.addEventListener('input', e => {
+        const block = e.target.closest('.question-block');
+
+        if (block) clearError(block);
+    });
+
+    container.addEventListener('change', e => {
+        const block = e.target.closest('.question-block');
+
+        if (block) clearError(block);
+    });
+
+    // Перевірка перед збереженням
+    form.addEventListener('submit', e => {
+        const blocks = [
+            ...container.querySelectorAll('.question-block')
+        ];
+
+        const texts = [];
+        const allOptions = [];
+        const correct = [];
+
+        let firstInvalid = null;
+
+        if (blocks.length === 0) {
+            e.preventDefault();
+            alert('Додайте хоча б одне питання.');
+            return;
+        }
+
+        blocks.forEach((block, i) => {
+            clearError(block);
+
+            const text = block.querySelector(
+                'input[name="questionTexts"]'
+            ).value.trim();
+
+            const rows = [
+                ...block.querySelectorAll(
+                    '.options-container .input-group'
+                )
+            ];
+
+            const options = rows.map(row =>
+                row.querySelector('input[name="option"]').value.trim()
+            );
+
+            const indexes = [];
+
+            rows.forEach((row, j) => {
+                if (row.querySelector('.correct-checkbox').checked) {
+                    indexes.push(j);
+                }
+            });
+
+            let message = '';
+
+            if (!text) {
+                message = 'Введіть текст питання.';
+            }
+            else if (options.length < 2) {
+                message =
+                    'Додайте щонайменше два варіанти відповіді.';
+            }
+            else if (options.some(x => !x)) {
+                message =
+                    'Заповніть усі варіанти відповіді.';
+            }
+            else if (options.some(x => x.includes('|'))) {
+                message =
+                    'Символ | не можна використовувати у варіантах відповіді.';
+            }
+            else if (indexes.length === 0) {
+                message =
+                    'Оберіть хоча б одну правильну відповідь.';
+            }
+
+            if (message) {
+                showError(
+                    block,
+                    `Питання ${existingCount + i + 1}: ${message}`
+                );
+
+                if (!firstInvalid) {
+                    firstInvalid = block;
+                }
+            }
+
+            texts.push(text);
+            allOptions.push(options.join('|'));
+            correct.push(indexes);
+        });
+
+        // Зупиняємо збереження, якщо є помилки
+        if (firstInvalid) {
+            e.preventDefault();
+
+            firstInvalid.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+
+            return;
+        }
+
+        form.querySelectorAll('.generated-question-data')
+            .forEach(el => el.remove());
+
+        function appendHidden(name, value) {
+            const input = document.createElement('input');
+
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value;
+            input.className = 'generated-question-data';
+
+            form.appendChild(input);
+        }
+
+        texts.forEach((text, i) => {
+            appendHidden('questionTexts', text);
+            appendHidden('allOptions', allOptions[i]);
+        });
+
+        document.getElementById('correctIndexesJson').value =
+            JSON.stringify(correct);
+
+        // Відключаємо видимі поля, щоб уникнути дублювання
+        blocks.forEach(block => {
+            block.querySelector(
+                'input[name="questionTexts"]'
+            ).disabled = true;
+        });
+    });
+
+    renumber();
+})();
+</script>
+}

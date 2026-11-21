@@ -1,0 +1,782 @@
+﻿@model EduPlatform.Models.Course
+
+@{
+    ViewData["Title"] = Model.Title;
+
+    bool isEnrolled = ViewBag.IsEnrolled is bool enrolled && enrolled;
+    var teacher = ViewBag.Teacher as EduPlatform.Models.Student;
+
+    string? userRole = Context.Session.GetString("UserRole");
+    int? userId = Context.Session.GetInt32("UserId");
+
+    bool isStudent = userRole == "Student";
+    bool isTeacher = userRole == "Teacher";
+    bool isAuthor = isTeacher && Model.AuthorId == userId;
+    bool canTakeTest = isStudent && isEnrolled;
+    var passedModuleIds = ViewBag.PassedModuleIds as HashSet<int> ?? new HashSet<int>();
+    bool isCourseCompleted = ViewBag.IsCourseCompleted is bool done && done;
+    var usedAttemptsByModule = ViewBag.UsedAttemptsByModule as Dictionary<int, int>
+        ?? new Dictionary<int, int>();
+    var activeAttemptModuleIds = ViewBag.ActiveAttemptModuleIds as HashSet<int>
+        ?? new HashSet<int>();
+
+    var visibleModules = Model.Modules?
+        .Where(m => !m.IsArchived || isAuthor)
+        .ToList()
+        ?? new List<EduPlatform.Models.CourseModule>();
+
+    var activeModuleCount = Model.Modules?
+        .Count(m => !m.IsArchived) ?? 0;
+
+    string levelLabel = Model.Level switch
+    {
+        "Beginner" => "Початковий",
+        "Intermediate" => "Середній",
+        "Advanced" => "Просунутий",
+        _ => Model.Level ?? "Не вказано"
+    };
+
+    string description = Model.Description ?? "";
+    bool hasLongDescription = description.Length > 260;
+    string shortDescription = hasLongDescription
+        ? description.Substring(0, 260).TrimEnd() + "…"
+        : description;
+}
+
+<style>
+    .course-details-page {
+        --course-burgundy: #6D1F32;
+        --course-dark: #40101F;
+        --course-green: #3D5C4B;
+        --course-sage: #D7E0D3;
+        --course-cream: #FDFBF7;
+        color: var(--course-dark);
+    }
+
+    .course-details-page .course-hero {
+        background: var(--course-cream);
+        border: 1px solid #EAE2DE;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 7px 22px rgba(64, 16, 31, .045);
+    }
+
+    .course-details-page .course-hero-accent {
+        height: 6px;
+        background: linear-gradient(90deg, #6D1F32, #3D5C4B);
+    }
+
+    .course-details-page .course-hero-body {
+        padding: clamp(22px, 4vw, 38px);
+    }
+
+    .course-details-page .course-heading {
+        color: var(--course-dark);
+        font-weight: 750;
+        line-height: 1.2;
+        letter-spacing: -.02em;
+        font-size: clamp(1.75rem, 3vw, 2.55rem);
+    }
+
+    .course-details-page .course-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        border-radius: 999px;
+        padding: 7px 12px;
+        font-size: .83rem;
+        font-weight: 600;
+        background: #E5EEE6;
+        color: var(--course-green);
+    }
+
+    .course-details-page .course-pill.burgundy {
+        background: #F4E9EB;
+        color: var(--course-burgundy);
+    }
+
+    .course-details-page .course-summary {
+        color: #716B6D;
+        line-height: 1.75;
+        margin-bottom: 0;
+    }
+
+    .course-details-page .course-more {
+        margin-top: 12px;
+    }
+
+    .course-details-page .course-more summary {
+        color: var(--course-burgundy);
+        font-weight: 650;
+        cursor: pointer;
+        width: fit-content;
+    }
+
+    .course-details-page .course-more[open] {
+        background: #F7F1EF;
+        border-radius: 12px;
+        padding: 12px 16px;
+    }
+
+    .course-details-page .course-more p {
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+        color: #625C5E;
+        line-height: 1.75;
+        margin: 12px 0 0;
+    }
+
+    .course-details-page .course-section {
+        background: #fff;
+        border: 1px solid #EAE5E2;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 6px 18px rgba(64, 16, 31, .045);
+    }
+
+    .course-details-page .course-section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 22px 24px 18px;
+    }
+
+    .course-details-page .course-section-icon {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: #E8F0E8;
+        color: var(--course-green);
+        flex-shrink: 0;
+    }
+
+    .course-details-page .course-section-icon.test {
+        background: #F6EAEC;
+        color: var(--course-burgundy);
+    }
+
+    .course-details-page .course-section-title {
+        color: var(--course-dark);
+        font-size: 1.2rem;
+        font-weight: 750;
+        margin: 0;
+    }
+
+    .course-details-page .course-section-content {
+        padding: 0 24px 24px;
+    }
+
+    .course-details-page .course-item {
+        padding: 18px;
+        border-radius: 13px;
+        margin-top: 12px;
+        border: 1px solid transparent;
+    }
+
+    .course-details-page .course-material {
+        background: #F0F5F0;
+        border-color: #E0EAE0;
+    }
+
+    .course-details-page .course-test {
+        background: #FAF3F4;
+        border-color: #F1E4E6;
+    }
+
+    .course-details-page .course-item h3 {
+        font-size: 1rem;
+        font-weight: 750;
+        color: var(--course-dark);
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+    }
+
+    .course-details-page .course-item-description {
+        color: #69676A;
+        font-size: .88rem;
+        line-height: 1.6;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+    }
+
+    .course-details-page .course-muted {
+        color: #716B6D;
+        font-size: .85rem;
+    }
+
+    .course-details-page .course-btn-green {
+        background: var(--course-green);
+        border: 1px solid var(--course-green);
+        color: #fff;
+        font-weight: 600;
+        border-radius: 9px;
+    }
+
+    .course-details-page .course-btn-green:hover {
+        background: #304A3C;
+        border-color: #304A3C;
+        color: #fff;
+    }
+
+    .course-details-page .course-btn-outline {
+        border: 1px solid var(--course-green);
+        color: var(--course-green);
+        background: #fff;
+        border-radius: 9px;
+        font-weight: 600;
+    }
+
+    .course-details-page .course-btn-outline:hover {
+        background: var(--course-green);
+        color: #fff;
+    }
+
+    .course-details-page .course-sidebar {
+        background: var(--course-cream);
+        border: 1px solid #EAE2DE;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 6px 18px rgba(64, 16, 31, .045);
+    }
+
+    .course-details-page .course-sidebar-accent {
+        height: 5px;
+        background: #D7E0D3;
+    }
+
+    .course-details-page .course-avatar {
+        width: 78px;
+        height: 78px;
+        background: #F1E4E7;
+        color: var(--course-burgundy);
+        font-size: 2rem;
+    }
+
+    .course-details-page .course-stat {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #E9E2DE;
+        font-size: .9rem;
+    }
+
+    .course-details-page .course-stat:last-child {
+        border-bottom: 0;
+    }
+
+    .course-details-page .course-stat strong {
+        color: var(--course-dark);
+        text-align: right;
+    }
+
+    .course-details-page .course-enrolled {
+        background: #DCECE2;
+        border: 1px solid #BBD8C4;
+        color: #29533C;
+        border-radius: 10px;
+        padding: 13px;
+        text-align: center;
+        font-weight: 650;
+    }
+
+    .course-details-page .course-empty {
+        background: #F7F5F3;
+        border-radius: 12px;
+        padding: 28px 16px;
+        color: #756F70;
+        text-align: center;
+    }
+
+    @@media (max-width: 575.98px) {
+        .course-details-page .course-section-header {
+            padding: 18px 16px 14px;
+        }
+
+        .course-details-page .course-section-content {
+            padding: 0 16px 18px;
+        }
+
+        .course-details-page .course-item {
+            padding: 15px;
+        }
+    }
+</style>
+
+<div class="container py-4 py-lg-5 course-details-page">
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mb-4"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>@TempData["Error"]</strong>
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Закрити">
+            </button>
+        </div>
+    }
+
+    <!-- Інформація про курс -->
+    <section class="course-hero mb-4 mb-lg-5"
+             aria-label="Інформація про курс">
+
+        <div class="course-hero-accent"></div>
+
+        <div class="course-hero-body">
+
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+
+                <span class="course-pill burgundy">
+                    <i class="bi bi-mortarboard"></i>
+                    @levelLabel
+                </span>
+
+                <span class="course-pill">
+                    <i class="bi bi-clock"></i>
+                    @Model.DurationHours годин
+                </span>
+
+                <span class="course-pill">
+                    <i class="bi bi-collection"></i>
+                    @activeModuleCount модулів
+                </span>
+
+            </div>
+
+            <h1 class="course-heading mb-3">
+                @Model.Title
+            </h1>
+
+            @if (!string.IsNullOrWhiteSpace(description))
+            {
+                <p class="course-summary">
+                    @shortDescription
+                </p>
+
+                @if (hasLongDescription)
+                {
+                    <details class="course-more">
+                        <summary>Читати повний опис</summary>
+                        <p>@description</p>
+                    </details>
+                }
+            }
+
+        </div>
+    </section>
+
+    <div class="row g-4 align-items-start">
+
+        <!-- Навчальні матеріали та тести -->
+        <main class="col-lg-8">
+
+            <section class="course-section mb-4"
+                     aria-labelledby="course-materials-title">
+
+                <div class="course-section-header">
+
+                    <span class="course-section-icon">
+                        <i class="bi bi-book fs-5"></i>
+                    </span>
+
+                    <h2 id="course-materials-title"
+                        class="course-section-title">
+                        Навчальні матеріали
+                    </h2>
+
+                </div>
+
+                <div class="course-section-content">
+
+                    @if (Model.Materials != null && Model.Materials.Any())
+                    {
+                        @foreach (var material in Model.Materials)
+                        {
+                            <article class="course-item course-material">
+
+                                <div class="d-flex flex-column flex-sm-row
+                                            align-items-start justify-content-between gap-3">
+
+                                    <div class="flex-grow-1" style="min-width:0;">
+
+                                        <h3 class="mb-2">
+                                            @material.Title
+                                        </h3>
+
+                                        @if (!string.IsNullOrWhiteSpace(material.Content))
+                                        {
+                                            <p class="course-item-description mb-0">
+                                                @material.Content
+                                            </p>
+                                        }
+
+                                    </div>
+
+                                    @if (!string.IsNullOrWhiteSpace(material.FilePath))
+                                    {
+                                        <a href="@material.FilePath"
+                                           target="_blank"
+                                           rel="noopener noreferrer"
+                                           class="btn btn-sm course-btn-outline flex-shrink-0">
+
+                                            <i class="bi bi-download me-1"></i>
+                                            Завантажити
+
+                                        </a>
+                                    }
+
+                                </div>
+
+                            </article>
+                        }
+                    }
+                    else
+                    {
+                        <div class="course-empty">
+                            <i class="bi bi-journal-text fs-3 d-block mb-2"></i>
+                            Навчальних матеріалів поки немає.
+                        </div>
+                    }
+
+                </div>
+            </section>
+
+            <!-- Тести та завдання -->
+            <section class="course-section"
+                     aria-labelledby="course-tests-title">
+
+                <div class="course-section-header">
+
+                    <span class="course-section-icon test">
+                        <i class="bi bi-clipboard-check fs-5"></i>
+                    </span>
+
+                    <h2 id="course-tests-title"
+                        class="course-section-title">
+                        Тести та завдання
+                    </h2>
+
+                </div>
+
+                <div class="course-section-content">
+
+                    @if (canTakeTest && isCourseCompleted)
+                    {
+                        <div class="alert alert-success mb-3" role="status">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            <strong>Курс успішно завершено!</strong>
+                            Усі активні тести складено.
+                        </div>
+                    }
+
+                    @if (visibleModules.Any())
+                    {
+                        @foreach (var module in visibleModules)
+                        {
+                            <article class="course-item course-test">
+
+                                <div class="d-flex flex-column flex-md-row
+                                            align-items-md-center justify-content-between gap-3">
+
+                                    <div class="flex-grow-1" style="min-width:0;">
+
+                                        <h3 class="mb-2">
+                                            @module.Title
+                                        </h3>
+
+                                        @if (canTakeTest && passedModuleIds.Contains(module.Id))
+                                        {
+                                            <span class="badge mb-2" style="background:#DCECE2;color:#29533C;">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Складено
+                                            </span>
+                                        }
+
+                                        <div class="course-muted">
+                                            <i class="bi bi-question-circle me-1"></i>
+                                            Питань: @(module.Questions?.Count ?? 0)
+                                        </div>
+
+                                        @if (canTakeTest && !module.IsArchived)
+                                        {
+                                            var used = usedAttemptsByModule.GetValueOrDefault(module.Id);
+                                            bool hasActiveAttempt = activeAttemptModuleIds.Contains(module.Id);
+                                            bool hasOrdinaryAttempts = module.MaxAttempts == 0 || used < module.MaxAttempts;
+                                            bool canPractice = isCourseCompleted &&
+                                                passedModuleIds.Contains(module.Id) &&
+                                                module.MaxAttempts > 0 && !hasOrdinaryAttempts &&
+                                                !hasActiveAttempt;
+
+                                            <div class="course-muted mt-2">
+                                                @if (canPractice)
+                                                {
+                                                    <i class="bi bi-check-circle-fill me-1"></i>
+                                                    <span>Курс завершено — доступна самоперевірка</span>
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi bi-arrow-repeat me-1"></i>
+                                                    @if (module.MaxAttempts == 0)
+                                                    {
+                                                        <span>Необмежена кількість спроб</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        var remaining = Math.Max(0, module.MaxAttempts - used);
+                                                        <span>Залишилося спроб: <strong>@remaining із @module.MaxAttempts</strong></span>
+                                                    }
+                                                }
+                                            </div>
+                                        }
+
+                                    </div>
+
+                                    <div class="flex-shrink-0">
+                                        @if (module.IsArchived)
+                                        {
+                                            <span class="course-muted">
+                                                <i class="bi bi-archive me-1"></i>
+                                                Архівований тест
+                                            </span>
+                                        }
+                                        else if (canTakeTest)
+                                        {
+                                            var used = usedAttemptsByModule.GetValueOrDefault(module.Id);
+                                            bool hasActiveAttempt = activeAttemptModuleIds.Contains(module.Id);
+                                            bool hasOrdinaryAttempts = module.MaxAttempts == 0 || used < module.MaxAttempts;
+                                            bool canPractice = isCourseCompleted &&
+                                                passedModuleIds.Contains(module.Id) &&
+                                                module.MaxAttempts > 0 && !hasOrdinaryAttempts &&
+                                                !hasActiveAttempt;
+
+                                            if (hasActiveAttempt || hasOrdinaryAttempts)
+                                            {
+                                                <form asp-controller="Test" asp-action="Start" method="post"
+                                                      asp-antiforgery="true"
+                                                      onsubmit="return confirm('Розпочати проходження тесту?');">
+                                                    <input type="hidden" name="moduleId" value="@module.Id" />
+                                                    <button type="submit" class="btn course-btn-green">
+                                                        <i class="bi bi-play-circle me-1"></i>
+                                                        @(hasActiveAttempt ? "Продовжити тест" : "Пройти тест")
+                                                    </button>
+                                                </form>
+                                            }
+                                            else if (canPractice)
+                                            {
+                                                <form asp-controller="Test" asp-action="Start" method="post"
+                                                      asp-antiforgery="true"
+                                                      onsubmit="return confirm('Розпочати самоперевірку? Результат не вплине на прогрес курсу.');">
+                                                    <input type="hidden" name="moduleId" value="@module.Id" />
+                                                    <input type="hidden" name="practice" value="true" />
+                                                    <button type="submit" class="btn course-btn-green">
+                                                        <i class="bi bi-arrow-repeat me-1"></i>
+                                                        Пройти для самоперевірки
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <span class="course-muted">
+                                                    <i class="bi bi-lock-fill me-1"></i> Спроби вичерпано
+                                                </span>
+                                            }
+                                        }
+                                        else if (isStudent)
+                                        {
+                                            <span class="course-muted">
+                                                <i class="bi bi-lock me-1"></i>
+                                                Спочатку приєднайтеся до курсу
+                                            </span>
+                                        }
+                                        else if (isTeacher)
+                                        {
+                                            <span class="course-muted">
+                                                <i class="bi bi-info-circle me-1"></i>
+                                                Тест доступний студентам
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <a asp-controller="Account"
+                                               asp-action="Login"
+                                               class="btn btn-sm course-btn-outline">
+
+                                                <i class="bi bi-box-arrow-in-right me-1"></i>
+                                                Увійти для проходження
+
+                                            </a>
+                                        }
+
+                                    </div>
+
+                                </div>
+
+                            </article>
+                        }
+                    }
+                    else
+                    {
+                        <div class="course-empty">
+                            <i class="bi bi-clipboard-check fs-3 d-block mb-2"></i>
+                            Тестів поки немає.
+                        </div>
+                    }
+
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Інформація про викладача -->
+        <aside class="col-lg-4">
+
+            <div class="course-sidebar sticky-lg-top"
+                 style="top:100px;">
+
+                <div class="course-sidebar-accent"></div>
+
+                <div class="p-4">
+
+                    <div class="text-center mb-4">
+
+                        <div class="course-avatar rounded-circle
+                                    d-inline-flex align-items-center
+                                    justify-content-center mb-3">
+
+                            <i class="bi bi-person"></i>
+
+                        </div>
+
+                        <h2 class="h5 fw-bold mb-1"
+                            style="color:#40101F;">
+
+                            @(teacher?.Name ?? "Викладач")
+
+                        </h2>
+
+                        <p class="course-muted mb-0">
+                            Автор курсу
+                        </p>
+
+                    </div>
+
+                    <div class="mb-4">
+
+                        <div class="course-stat">
+                            <span class="course-muted">
+                                <i class="bi bi-collection me-2"></i>
+                                Модулів
+                            </span>
+                            <strong>@activeModuleCount</strong>
+                        </div>
+
+                        <div class="course-stat">
+                            <span class="course-muted">
+                                <i class="bi bi-clock me-2"></i>
+                                Тривалість
+                            </span>
+                            <strong>@Model.DurationHours год</strong>
+                        </div>
+
+                        <div class="course-stat">
+                            <span class="course-muted">
+                                <i class="bi bi-mortarboard me-2"></i>
+                                Рівень
+                            </span>
+                            <strong>@levelLabel</strong>
+                        </div>
+
+                    </div>
+
+                    @if (isAuthor)
+                    {
+                        <a asp-controller="Teacher"
+                           asp-action="ManageCourse"
+                           asp-route-id="@Model.Id"
+                           class="btn course-btn-green w-100 py-2">
+
+                            <i class="bi bi-gear me-2"></i>
+                            Керувати курсом
+
+                        </a>
+                    }
+                    else if (isStudent)
+                    {
+                        @if (isEnrolled)
+                        {
+                            <div class="course-enrolled">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                Ви вже на курсі
+                            </div>
+                        }
+                        else
+                        {
+                            <form asp-controller="Course"
+                                  asp-action="Join"
+                                  method="post"
+                                  asp-antiforgery="true">
+
+                                <input type="hidden"
+                                       name="courseId"
+                                       value="@Model.Id" />
+
+                                <button type="submit"
+                                        class="btn course-btn-green w-100 py-2">
+
+                                    <i class="bi bi-person-plus me-2"></i>
+                                    Приєднатися до курсу
+
+                                </button>
+
+                            </form>
+                        }
+                    }
+                    else if (isTeacher)
+                    {
+                        <div class="alert alert-light border mb-0 small">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Проходження тестів доступне студентам.
+                        </div>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account"
+                           asp-action="Login"
+                           class="btn course-btn-green w-100 py-2">
+
+                            <i class="bi bi-box-arrow-in-right me-2"></i>
+                            Увійти, щоб приєднатися
+
+                        </a>
+                    }
+
+                </div>
+            </div>
+
+        </aside>
+
+    </div>
+
+    <!-- Повернення до каталогу -->
+    <div class="mt-4 mt-lg-5">
+
+        <a asp-controller="Course"
+           asp-action="Index"
+           class="btn btn-outline-secondary">
+
+            <i class="bi bi-arrow-left me-2"></i>
+            Назад до каталогу
+
+        </a>
+
+    </div>
+
+</div>

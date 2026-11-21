@@ -1,0 +1,425 @@
+﻿
+@model EduPlatform.Models.Attempt
+
+@{
+    ViewData["Title"] = "Проходження тесту";
+
+    // Відновлюємо відповіді після помилки перевірки.
+    var selectedAnswers = new Dictionary<int, List<string>>();
+
+    var selectedAnswersJson =
+        TempData["SelectedAnswersJson"] as string;
+
+    if (!string.IsNullOrWhiteSpace(selectedAnswersJson))
+    {
+        try
+        {
+            selectedAnswers =
+                System.Text.Json.JsonSerializer.Deserialize<
+                    Dictionary<int, List<string>>>(
+                        selectedAnswersJson)
+                ?? new Dictionary<int, List<string>>();
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            selectedAnswers = new Dictionary<int, List<string>>();
+        }
+    }
+
+    // Отримуємо збережений порядок питань.
+    var savedOrder = ViewBag.QuestionOrder as List<int> ?? new List<int>();
+
+    // Визначаємо позицію кожного питання.
+    var positions = savedOrder
+        .Distinct()
+        .Select((id, index) => new { id, index })
+        .ToDictionary(x => x.id, x => x.index);
+
+    // Сортуємо питання за порядком поточної спроби.
+    var questions = (Model.Module?.Questions
+        ?? Enumerable.Empty<EduPlatform.Models.Question>())
+        .OrderBy(q => positions.TryGetValue(q.Id, out var index)
+            ? index
+            : int.MaxValue)
+        .ThenBy(q => q.Id)
+        .ToList();
+}
+
+<style>
+    /* Сторінка проходження тесту */
+    .test-taking-page {
+        --test-green: #3D5C4B;
+        --test-green-dark: #304A3C;
+        --test-sage: #D7E0D3;
+        --test-cream: #FDFBF7;
+        --test-burgundy: #40101F;
+    }
+
+    .test-taking-page .test-heading {
+        color: var(--test-burgundy);
+    }
+
+    /* Лічильник питань */
+    .test-taking-page .test-count {
+        background-color: var(--test-sage);
+        color: var(--test-green);
+        border-radius: 9px;
+        font-size: 0.85rem;
+        font-weight: 650;
+        padding: 9px 14px;
+    }
+
+    /* Картки питань */
+    .test-taking-page .question-card {
+        background-color: var(--test-cream);
+        border: 1px solid #EAE4DF !important;
+        border-radius: 16px;
+        box-shadow: 0 5px 16px rgba(64, 16, 31, 0.045) !important;
+    }
+
+    .test-taking-page .question-card .card-body {
+        padding: 25px;
+    }
+
+    /* Номер питання */
+    .test-taking-page .question-number {
+        background-color: var(--test-green);
+        color: var(--test-cream);
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        border-radius: 50%;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .test-taking-page .question-title {
+        color: var(--test-burgundy);
+        line-height: 1.5;
+    }
+
+    /* Варіанти відповідей */
+    .test-taking-page .answer-option {
+        padding: 9px 12px;
+        border-radius: 9px;
+        transition: background-color 0.2s ease;
+    }
+
+    .test-taking-page .answer-option:hover {
+        background-color: #EFF4EF;
+    }
+
+    .test-taking-page .form-check-input {
+        cursor: pointer;
+        border-color: #C7D3C8;
+    }
+
+    .test-taking-page .form-check-input:checked {
+        background-color: var(--test-green);
+        border-color: var(--test-green);
+    }
+
+    .test-taking-page .form-check-input:focus {
+        border-color: #7B9A85;
+        box-shadow: 0 0 0 0.2rem rgba(61, 92, 75, 0.18);
+    }
+
+    .test-taking-page .form-check-label {
+        cursor: pointer;
+        color: #40383C;
+        line-height: 1.5;
+    }
+
+    /* Кнопка завершення */
+    .test-taking-page .test-submit-btn {
+        background-color: var(--test-green);
+        border: 1px solid var(--test-green);
+        color: var(--test-cream);
+        border-radius: 9px;
+        font-weight: 600;
+        padding: 10px 22px;
+        transition: background-color 0.2s ease;
+    }
+
+    .test-taking-page .test-submit-btn:hover {
+        background-color: var(--test-green-dark);
+        border-color: var(--test-green-dark);
+        color: #FFFFFF;
+    }
+
+    .test-taking-page .test-submit-btn:focus-visible {
+        outline: 3px solid #A4BDAA;
+        outline-offset: 3px;
+    }
+
+    .test-taking-page .test-submit-btn:disabled {
+        background-color: #82998B;
+        border-color: #82998B;
+        color: #FFFFFF;
+    }
+
+    /* Помилка перевірки питання */
+    .test-taking-page .question-card.border-danger {
+        border: 1px solid #DC3545 !important;
+    }
+
+    @@media (max-width: 575.98px) {
+        .test-taking-page .question-card .card-body {
+            padding: 18px;
+        }
+    }
+</style>
+
+<div class="container py-5 test-taking-page">
+
+    @* Повідомлення про помилки сервера. *@
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Закрити">
+            </button>
+        </div>
+    }
+
+    <!-- Заголовок тесту -->
+    <div class="d-flex flex-wrap justify-content-between
+                align-items-center gap-3 mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-2 test-heading">
+                @Model.Module?.Title
+            </h2>
+
+            <p class="text-muted mb-0">
+                Оберіть правильні варіанти відповідей
+                для кожного питання.
+            </p>
+        </div>
+
+        <span class="badge test-count">
+            <i class="bi bi-question-circle me-1"></i>
+            Питань: @questions.Count
+        </span>
+
+    </div>
+
+    @* Порожній стан тесту. *@
+    @if (!questions.Any())
+    {
+        <div class="alert alert-warning" role="status">
+            У цьому тесті ще немає питань.
+        </div>
+
+        <a asp-controller="Course"
+           asp-action="Index"
+           class="btn btn-outline-secondary">
+            Назад до курсів
+        </a>
+    }
+    else
+    {
+        @* Форма надсилання відповідей із захистом від CSRF. *@
+        <form asp-controller="Test"
+              asp-action="Submit"
+              asp-antiforgery="true"
+              method="post"
+              id="testForm">
+
+            <input type="hidden"
+                   name="attemptId"
+                   value="@Model.Id" />
+
+            @for (var i = 0; i < questions.Count; i++)
+            {
+                var question = questions[i];
+
+                <div class="card shadow-sm mb-4 question-card">
+                    <div class="card-body">
+
+                        <!-- Номер та текст питання -->
+                        <div class="d-flex align-items-start gap-3 mb-3">
+
+                            <span class="badge question-number
+                                         d-inline-flex align-items-center
+                                         justify-content-center flex-shrink-0">
+                                @(i + 1)
+                            </span>
+
+                            <h5 class="fw-semibold mb-0 question-title">
+                                @question.Text
+                            </h5>
+
+                        </div>
+
+                        <p class="text-muted small mb-3">
+                            Виберіть усі правильні варіанти
+                            (якщо їх декілька).
+                        </p>
+
+                        @* Назви полів відповідають параметру answers у Submit. *@
+                        @foreach (var answer in question.Answers.OrderBy(a => a.Id))
+                        {
+                            var inputId = $"q_{question.Id}_{answer.Id}";
+
+                            // Відновлюємо раніше вибраний варіант.
+                            var isChecked =
+                                selectedAnswers.TryGetValue(
+                                    question.Id,
+                                    out var selected) &&
+                                selected != null &&
+                                selected.Contains(answer.Text);
+
+                            <div class="form-check mb-2 answer-option">
+
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       name="answers[@question.Id]"
+                                       value="@answer.Text"
+                                       id="@inputId"
+                                       checked="@isChecked" />
+
+                                <label class="form-check-label"
+                                       for="@inputId">
+                                    @answer.Text
+                                </label>
+
+                            </div>
+                        }
+
+                        <div class="text-danger small mt-3
+                                    question-error d-none"
+                             role="alert">
+                            Оберіть хоча б один варіант відповіді.
+                        </div>
+
+                    </div>
+                </div>
+            }
+
+            <!-- Загальна помилка форми -->
+            <div id="formError"
+                 class="alert alert-danger d-none"
+                 role="alert">
+                Будь ласка, дайте відповідь на всі питання.
+            </div>
+
+            <!-- Кнопки -->
+            <div class="d-flex flex-wrap justify-content-between
+                        gap-3 mt-4">
+
+                <a asp-controller="Course"
+                   asp-action="Index"
+                   class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Повернутися до курсів
+                </a>
+
+                <button type="submit"
+                        id="submitButton"
+                        class="btn test-submit-btn">
+
+                    <span id="submitText">
+                        Завершити тест
+                    </span>
+
+                    <span id="submitSpinner"
+                          class="spinner-border spinner-border-sm
+                                 ms-2 d-none"
+                          aria-hidden="true">
+                    </span>
+
+                </button>
+
+            </div>
+
+        </form>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("testForm");
+
+            if (!form) return;
+
+            const button = document.getElementById("submitButton");
+            const buttonText = document.getElementById("submitText");
+            const spinner = document.getElementById("submitSpinner");
+            const formError = document.getElementById("formError");
+
+            let submitting = false;
+
+            // Перевіряємо, чи вибрано відповідь на кожне питання.
+            form.addEventListener("submit", function (event) {
+                if (submitting) {
+                    event.preventDefault();
+                    return;
+                }
+
+                let valid = true;
+                let firstInvalid = null;
+
+                document.querySelectorAll(".question-card").forEach(card => {
+                    const checked = card.querySelector(
+                        'input[type="checkbox"]:checked'
+                    );
+
+                    const error = card.querySelector(".question-error");
+
+                    if (!checked) {
+                        valid = false;
+                        card.classList.add("border", "border-danger");
+                        error.classList.remove("d-none");
+
+                        if (!firstInvalid) firstInvalid = card;
+                    } else {
+                        card.classList.remove("border", "border-danger");
+                        error.classList.add("d-none");
+                    }
+                });
+
+                if (!valid) {
+                    event.preventDefault();
+                    formError.classList.remove("d-none");
+
+                    firstInvalid?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center"
+                    });
+
+                    return;
+                }
+
+                formError.classList.add("d-none");
+
+                // Блокуємо повторне надсилання форми.
+                submitting = true;
+                button.disabled = true;
+                buttonText.textContent = "Збереження...";
+                spinner.classList.remove("d-none");
+            });
+
+            // При зміні відповіді прибираємо повідомлення про помилку.
+            form.addEventListener("change", function (event) {
+                if (!event.target.matches('input[type="checkbox"]')) {
+                    return;
+                }
+
+                const card = event.target.closest(".question-card");
+                const error = card.querySelector(".question-error");
+
+                if (card.querySelector('input[type="checkbox"]:checked')) {
+                    card.classList.remove("border", "border-danger");
+                    error.classList.add("d-none");
+                }
+            });
+        });
+    </script>
+}

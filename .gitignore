@@ -1,0 +1,33 @@
+﻿# Visual Studio
+.vs/
+*.user
+*.suo
+# .NET
+**/bin/
+**/obj/
+TestResults/
+# SQLite
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+# Playwright
+**/node_modules/
+**/playwright-report/
+**/test-results/
+**/blob-report/
+# Secrets
+.env
+.env.*
+!.env.example
+**/secrets.json
+*.pfx
+*.p12
+*.key
+# Temporary
+*.log
+*.tmp
+*.bak
+
+# User-uploaded files
+**/wwwroot/uploads/

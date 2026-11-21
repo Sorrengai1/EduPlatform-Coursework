@@ -1,0 +1,268 @@
+﻿
+@model EduPlatform.Models.Attempt
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Результат тесту";
+
+    // Отримуємо відповіді завершеної спроби.
+    var attemptAnswers = Model.AttemptAnswers?
+        .ToList()
+        ?? new List<EduPlatform.Models.AttemptAnswer>();
+
+    var correctCount = attemptAnswers.Count(a => a.IsCorrect);
+    var totalQuestions = attemptAnswers.Count;
+
+    // Отримуємо порядок питань поточної спроби.
+    var questionOrder = new List<int>();
+
+    if (!string.IsNullOrWhiteSpace(Model.QuestionOrderJson))
+    {
+        try
+        {
+            questionOrder =
+                JsonSerializer.Deserialize<List<int>>(
+                    Model.QuestionOrderJson)
+                ?? new List<int>();
+        }
+        catch (JsonException)
+        {
+            questionOrder = new List<int>();
+        }
+    }
+
+    var positions = questionOrder
+        .Distinct()
+        .Select((id, index) => new { id, index })
+        .ToDictionary(x => x.id, x => x.index);
+
+    // Показуємо питання, що належать завершеній спробі.
+    var answeredQuestionIds = attemptAnswers
+        .Select(a => a.QuestionId)
+        .ToHashSet();
+
+    var questions = (Model.Module?.Questions
+        ?? Enumerable.Empty<EduPlatform.Models.Question>())
+        .Where(q => answeredQuestionIds.Contains(q.Id))
+        .OrderBy(q => positions.TryGetValue(q.Id, out var index)
+            ? index
+            : int.MaxValue)
+        .ThenBy(q => q.Id)
+        .ToList();
+}
+
+<div class="container py-5">
+
+    <h1 class="fw-bold mb-3" style="color: #40101F;">
+        Результат тесту: @Model.Module?.Title
+    </h1>
+
+    <hr />
+
+    <!-- Загальний результат тестування -->
+    <div class="alert alert-info">
+        <h2 class="mb-1">
+            Ваш бал: @Model.Score%
+        </h2>
+
+        <p class="mb-0">
+            Правильних відповідей:
+            @correctCount з @totalQuestions
+        </p>
+    </div>
+
+    @if (ViewBag.ShowReview == true)
+    {
+        <h4 class="fw-bold mt-4 mb-3" style="color: #6D1F32;">
+            Розбір відповідей:
+        </h4>
+
+        @if (!questions.Any())
+        {
+            <div class="alert alert-warning" role="status">
+                Детальний розбір відповідей недоступний.
+            </div>
+        }
+        else
+        {
+            @foreach (var question in questions)
+            {
+                var studentAnswer = attemptAnswers
+                    .FirstOrDefault(a => a.QuestionId == question.Id);
+
+                var selectedAnswerText =
+                    studentAnswer?.SelectedAnswer ?? "";
+
+                var isStudentCorrect =
+                    studentAnswer?.IsCorrect ?? false;
+
+                // Відновлюємо вибрані варіанти відповідей.
+                var selectedAnswers = new List<string>();
+
+                if (!string.IsNullOrWhiteSpace(selectedAnswerText))
+                {
+                    var savedText = selectedAnswerText.Trim();
+
+                    if (savedText.StartsWith("["))
+                    {
+                        try
+                        {
+                            selectedAnswers =
+                                JsonSerializer.Deserialize<List<string>>(
+                                    savedText)
+                                ?? new List<string>();
+                        }
+                        catch (JsonException)
+                        {
+                            // Підтримка раніше збережених відповідей.
+                            selectedAnswers = selectedAnswerText
+                                .Split(',')
+                                .Select(s => s.Trim())
+                                .Where(s => !string.IsNullOrWhiteSpace(s))
+                                .ToList();
+                        }
+                    }
+                    else
+                    {
+                        // Підтримка старого формату відповідей.
+                        selectedAnswers = selectedAnswerText
+                            .Split(',')
+                            .Select(s => s.Trim())
+                            .Where(s => !string.IsNullOrWhiteSpace(s))
+                            .ToList();
+                    }
+                }
+
+                var correctAnswers = question.Answers
+                    .Where(a => a.IsCorrect)
+                    .Select(a => a.Text)
+                    .ToList();
+
+                <div class="card mb-4 shadow-sm border-0">
+                    <div class="card-body">
+
+                        <!-- Текст питання -->
+                        <h5 class="fw-bold mb-3"
+                            style="color: #40101F;">
+                            @question.Text
+                        </h5>
+
+                        <!-- Варіанти відповідей -->
+                        <div class="list-group mb-3">
+
+                            @foreach (var answer in question.Answers.OrderBy(a => a.Id))
+                            {
+                                var isCorrectOption = answer.IsCorrect;
+
+                                var isSelected = selectedAnswers.Contains(
+                                    answer.Text,
+                                    StringComparer.Ordinal);
+
+                                string itemClass;
+                                string iconClass;
+
+                                if (isSelected && isCorrectOption)
+                                {
+                                    itemClass =
+                                        "list-group-item-success border-success";
+
+                                    iconClass =
+                                        "bi-check-circle-fill text-success";
+                                }
+                                else if (isSelected && !isCorrectOption)
+                                {
+                                    itemClass =
+                                        "list-group-item-danger border-danger";
+
+                                    iconClass =
+                                        "bi-x-circle-fill text-danger";
+                                }
+                                else if (!isSelected && isCorrectOption)
+                                {
+                                    itemClass =
+                                        "list-group-item-light border-success";
+
+                                    iconClass =
+                                        "bi-check-circle text-success";
+                                }
+                                else
+                                {
+                                    itemClass = "list-group-item-light";
+                                    iconClass = "bi-circle text-muted";
+                                }
+
+                                <div class="list-group-item @itemClass">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi @iconClass me-3 fs-5"></i>
+
+                                        <span class="@(isSelected || isCorrectOption
+                                            ? "fw-bold"
+                                            : "")">
+                                            @answer.Text
+                                        </span>
+                                    </div>
+                                </div>
+                            }
+
+                        </div>
+
+                        <!-- Підсумок відповіді -->
+                        <div class="p-3 rounded"
+                             style="background-color: @(isStudentCorrect
+                                 ? "#D5DED0"
+                                 : "#FCE8E6");">
+
+                            <p class="mb-1">
+                                <span class="fw-bold">
+                                    Ваша відповідь:
+                                </span>
+
+                                <span class="@(isStudentCorrect
+                                    ? "text-success"
+                                    : "text-danger")">
+
+                                    @(selectedAnswers.Any()
+                                        ? string.Join(", ", selectedAnswers)
+                                        : "Не обрано")
+
+                                </span>
+                            </p>
+
+                            <p class="mb-0">
+                                <span class="fw-bold">
+                                    Правильна відповідь:
+                                </span>
+
+                                <span class="text-success">
+                                    @(correctAnswers.Any()
+                                        ? string.Join(", ", correctAnswers)
+                                        : "Не визначено")
+                                </span>
+                            </p>
+
+                        </div>
+
+                    </div>
+                </div>
+            }
+        }
+    }
+    else
+    {
+        <div class="alert alert-warning mt-4">
+            <strong>Увага!</strong>
+            Викладач вимкнув показ правильних відповідей
+            для цього курсу.
+        </div>
+    }
+
+    <a asp-controller="Course"
+       asp-action="Index"
+       class="btn btn-primary mt-4">
+
+        <i class="bi bi-arrow-left me-2"></i>
+        Повернутися до каталогу
+
+    </a>
+
+</div>

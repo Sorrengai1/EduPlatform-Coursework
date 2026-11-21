@@ -1,0 +1,179 @@
+﻿@{
+    ViewData["Title"] = "Статистика";
+    Layout = "~/Views/Shared/_TeacherLayout.cshtml";
+}
+
+<!-- Заголовок -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1" style="color: #40101F;">Панель керування: @(ViewBag.UserFullName ?? "Викладач")</h2>
+        <p class="text-muted mb-0">Ось короткий огляд вашої діяльності на платформі.</p>
+    </div>
+    <span class="text-muted">@DateTime.Now.ToString("dd MMMM yyyy")</span>
+</div>
+
+<!-- Картки статистики (збільшені) -->
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100 p-4" style="background: #FFFFFF; border-radius: 20px;">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 65px; height: 65px; background-color: #FCE8E6; color: #6D1F32;">
+                    <i class="bi bi-book fs-2"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-0">Всього курсів</h6>
+                    <h2 class="fw-bold mb-0" style="color: #6D1F32; font-size: 2.5rem;">@ViewBag.TotalCourses</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100 p-4" style="background: #FFFFFF; border-radius: 20px;">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 65px; height: 65px; background-color: #D5DED0; color: #3D5C4B;">
+                    <i class="bi bi-people fs-2"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-0">Студентів</h6>
+                    <h2 class="fw-bold mb-0" style="color: #3D5C4B; font-size: 2.5rem;">@ViewBag.TotalStudents</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100 p-4" style="background: #FFFFFF; border-radius: 20px;">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 65px; height: 65px; background-color: #E5C6C2; color: #843B4B;">
+                    <i class="bi bi-pencil-square fs-2"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-0">Тестів</h6>
+                    <h2 class="fw-bold mb-0" style="color: #843B4B; font-size: 2.5rem;">@ViewBag.TotalTests</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100 p-4" style="background: #FFFFFF; border-radius: 20px;">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 65px; height: 65px; background-color: #FEF3C7; color: #D97706;">
+                    <i class="bi bi-bar-chart fs-2"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-0">Пройдено тестів</h6>
+                    <h2 class="fw-bold mb-0" style="color: #D97706; font-size: 2.5rem;">@ViewBag.TotalResults</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Основні блоки -->
+<div class="row g-4">
+    <!-- ЛІВА КОЛОНКА: Останні результати -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 20px;">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+                <h5 class="fw-bold mb-4" style="color: #6D1F32;">
+                    <i class="bi bi-clipboard-check me-2"></i>
+                    Останні результати тестів
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead style="background-color: #3D5C4B;">
+                            <tr>
+                                <th style="background-color: #D7E0D3; color: #3D5C4B;">
+                                    Студент
+                                </th>
+                                <th style="background-color: #D7E0D3; color: #3D5C4B;">
+                                    Тест
+                                </th>
+                                <th style="background-color: #D7E0D3; color: #3D5C4B;">
+                                    Бал
+                                </th>
+                                <th style="background-color: #D7E0D3; color: #3D5C4B;">
+                                    Дата
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (ViewBag.RecentResults != null && ((List<EduPlatform.Models.Attempt>)ViewBag.RecentResults).Any())
+                            {
+                                foreach (var result in ViewBag.RecentResults)
+                                {
+                                    <tr>
+                                        <td class="py-3 px-4 fw-bold" style="color: #40101F;">@result.Student?.Name</td>
+                                        <td class="py-3 px-4">@result.Module?.Title</td>
+                                        <td class="py-3 px-4">
+                                            <span class="badge @(result.Score >= 60 ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger")" style="font-size: 0.9rem; padding: 0.5rem 0.75rem;">
+                                                @result.Score%
+                                            </span>
+                                        </td>
+                                        <td class="py-3 px-4 text-muted">@result.StartedAt.ToString("dd.MM.yyyy")</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr><td colspan="4" class="text-center py-4 text-muted">Результатів поки немає.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ПРАВА КОЛОНКА: Студенти -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 20px;">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+                <h5 class="fw-bold mb-0" style="color: #3D5C4B;">
+                    <i class="bi bi-people-fill me-2"></i> Студенти курсів
+                </h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    @if (ViewBag.Students != null && ((List<EduPlatform.Models.Student>)ViewBag.Students).Any())
+                    {
+                        foreach (var student in ViewBag.Students)
+                        {
+                            <li class="list-group-item d-flex align-items-center py-3 px-0 border-bottom">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
+                                     style="width: 45px; height: 45px; background-color: #D5DED0; color: #3D5C4B; font-weight: bold; font-size: 1.1rem;">
+                                    @(student.Name?.Substring(0, 1).ToUpper() ?? "С")
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold" style="color: #40101F;">@student.Name</h6>
+                                    <small class="text-muted">@student.Email</small>
+                                </div>
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                        <li class="list-group-item text-center py-4 text-muted border-0">Студентів поки немає.</li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Порада дня (внизу) -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #FDFBF7, #F7F2F3); border-radius: 20px;">
+            <div class="card-body p-4 text-center">
+                <h5 class="fw-bold mb-2" style="color: #6D1F32;">
+                    <i class="bi bi-lightbulb me-2"></i> Порада дня
+                </h5>
+                <p class="text-muted mb-0">
+                    Регулярно переглядайте результати студентів, щоб вчасно помічати труднощі та допомагати їм у навчанні.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

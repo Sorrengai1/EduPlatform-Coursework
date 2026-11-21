@@ -1,0 +1,93 @@
+﻿@{
+    ViewData["Title"] = "Реєстрація";
+    var selectedRole = ViewBag.Role as string ?? "Student";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header text-white" style="background-color: #6D1F32;">
+                    <h4 class="mb-0"><i class="bi bi-person-plus me-2"></i> Реєстрація</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-controller="Account" asp-action="Register" method="post" novalidate>
+                        @Html.AntiForgeryToken()
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                Перевірте виділені поля та виправте помилки.
+                                Правильно введені дані збережено у формі.
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label fw-bold">Ім'я: <span class="text-danger">*</span></label>
+                            <input id="name" type="text" name="name" value="@ViewBag.Name"
+                                   class="form-control @(ViewData.ModelState.ContainsKey("name") && ViewData.ModelState["name"]!.Errors.Count > 0 ? "is-invalid" : "")"
+                                   maxlength="100" autocomplete="given-name" required />
+                            @Html.ValidationMessage("name", null, new { @class = "invalid-feedback d-block" })
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="lastName" class="form-label fw-bold">Прізвище: <span class="text-danger">*</span></label>
+                            <input id="lastName" type="text" name="lastName" value="@ViewBag.LastName"
+                                   class="form-control @(ViewData.ModelState.ContainsKey("lastName") && ViewData.ModelState["lastName"]!.Errors.Count > 0 ? "is-invalid" : "")"
+                                   maxlength="100" autocomplete="family-name" required />
+                            @Html.ValidationMessage("lastName", null, new { @class = "invalid-feedback d-block" })
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="middleName" class="form-label fw-bold">По батькові (необов'язково):</label>
+                            <input id="middleName" type="text" name="middleName" value="@ViewBag.MiddleName"
+                                   class="form-control @(ViewData.ModelState.ContainsKey("middleName") && ViewData.ModelState["middleName"]!.Errors.Count > 0 ? "is-invalid" : "")"
+                                   maxlength="100" />
+                            @Html.ValidationMessage("middleName", null, new { @class = "invalid-feedback d-block" })
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label fw-bold">Email: <span class="text-danger">*</span></label>
+                            <input id="email" type="email" name="email" value="@ViewBag.Email"
+                                   class="form-control @(ViewData.ModelState.ContainsKey("email") && ViewData.ModelState["email"]!.Errors.Count > 0 ? "is-invalid" : "")"
+                                   maxlength="254" autocomplete="email" required />
+                            @Html.ValidationMessage("email", null, new { @class = "invalid-feedback d-block" })
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label fw-bold">Пароль: <span class="text-danger">*</span></label>
+                            <input id="password" type="password" name="password"
+                                   class="form-control @(ViewData.ModelState.ContainsKey("password") && ViewData.ModelState["password"]!.Errors.Count > 0 ? "is-invalid" : "")"
+                                   minlength="8" maxlength="128" autocomplete="new-password" required />
+                            <div class="form-text">Від 8 до 128 символів.</div>
+                            @Html.ValidationMessage("password", null, new { @class = "invalid-feedback d-block" })
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label fw-bold">Підтвердження пароля: <span class="text-danger">*</span></label>
+                            <input id="confirmPassword" type="password" name="confirmPassword"
+                                   class="form-control @(ViewData.ModelState.ContainsKey("confirmPassword") && ViewData.ModelState["confirmPassword"]!.Errors.Count > 0 ? "is-invalid" : "")"
+                                   autocomplete="new-password" required />
+                            @Html.ValidationMessage("confirmPassword", null, new { @class = "invalid-feedback d-block" })
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="role" class="form-label fw-bold">Хто ви?</label>
+                            <select id="role" name="role"
+                                    class="form-select @(ViewData.ModelState.ContainsKey("role") && ViewData.ModelState["role"]!.Errors.Count > 0 ? "is-invalid" : "")">
+                                <option value="Student" selected="@(selectedRole == "Student")">Студент</option>
+                                <option value="Teacher" selected="@(selectedRole == "Teacher")">Викладач</option>
+                            </select>
+                            @Html.ValidationMessage("role", null, new { @class = "invalid-feedback d-block" })
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center gap-2 mt-4">
+                            <a asp-action="Login" class="btn btn-outline-secondary">Вже є акаунт? Увійти</a>
+                            <button type="submit" class="btn btn-primary">Зареєструватися</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

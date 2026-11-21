@@ -1,0 +1,404 @@
+﻿
+@model IEnumerable<EduPlatform.Models.Course>
+
+@{
+    ViewData["Title"] = "Головна";
+
+    // Кількість записаних студентів на кожному курсі
+    var enrollmentCounts =
+        ViewBag.EnrollmentCounts as Dictionary<int, int>
+        ?? new Dictionary<int, int>();
+
+    // Чи є хоча б один курс із записаними студентами
+    bool hasPopularCourses = ViewBag.HasPopularCourses == true;
+
+    // Реальна статистика платформи
+    int totalCoursesAndModules = ViewBag.TotalCoursesAndModules ?? 0;
+    int totalQuestions = ViewBag.TotalQuestions ?? 0;
+}
+
+<!-- HERO SECTION -->
+<div class="hero-section mb-5">
+    <div class="row align-items-center">
+
+        <div class="col-lg-6 mb-4 mb-lg-0">
+            <h1 class="hero-title mb-3">
+                Навчайся.<br />
+                Створюй.<br />
+                <span class="text-gold">Розвивайся.</span>
+            </h1>
+
+            <p class="hero-subtitle mb-4">
+                EduPlatform — це сучасна освітня платформа для вивчення
+                IT-технологій, програмування та комп'ютерних дисциплін.
+                Отримуй практичні навички, проходь інтерактивні тести
+                та відстежуй свій прогрес в одному місці.
+            </p>
+
+            <div class="d-flex flex-wrap gap-3">
+                <a asp-controller="Course"
+                   asp-action="Index"
+                   class="btn btn-primary btn-lg px-4">
+                    Переглянути курси
+                </a>
+
+                @if (Context.Session.GetString("UserRole") == null)
+                {
+                    <a asp-controller="Account"
+                       asp-action="Register"
+                       class="btn btn-outline-success btn-lg px-4">
+                        Приєднатися
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-6 text-center position-relative">
+            <img src="~/images/logo.png"
+                 alt="EduPlatform"
+                 class="img-fluid position-relative"
+                 style="z-index: 2; max-width: 380px;" />
+        </div>
+
+    </div>
+</div>
+
+<!-- СТАТИСТИКА ПЛАТФОРМИ -->
+<div class="row mb-5 g-4">
+
+    <!-- Кількість курсів та модулів -->
+    <div class="col-md-4">
+        <div class="stat-card p-4 text-center">
+
+            <div class="stat-icon mx-auto mb-3"
+                 style="background-color: #D5DED0; color: #3D5C4B;">
+                <i class="bi bi-journal-code"></i>
+            </div>
+
+            <h3 class="mb-1 fw-bold" style="color: #3D5C4B;">
+                @totalCoursesAndModules
+            </h3>
+
+            <p class="text-muted mb-0">
+                Курсів та модулів з IT
+            </p>
+
+        </div>
+    </div>
+
+    <!-- Кількість тестових питань -->
+    <div class="col-md-4">
+        <div class="stat-card p-4 text-center">
+
+            <div class="stat-icon mx-auto mb-3"
+                 style="background-color: #D5DED0; color: #3D5C4B;">
+                <i class="bi bi-patch-question"></i>
+            </div>
+
+            <h3 class="mb-1 fw-bold" style="color: #3D5C4B;">
+                @totalQuestions
+            </h3>
+
+            <p class="text-muted mb-0">
+                Тестових питань
+            </p>
+
+        </div>
+    </div>
+
+    <!-- Доступність платформи -->
+    <div class="col-md-4">
+        <div class="stat-card p-4 text-center">
+
+            <div class="stat-icon mx-auto mb-3"
+                 style="background-color: #D5DED0; color: #3D5C4B;">
+                <i class="bi bi-people"></i>
+            </div>
+
+            <h3 class="mb-1 fw-bold" style="color: #3D5C4B;">
+                24/7
+            </h3>
+
+            <p class="text-muted mb-0">
+                Доступ до навчання
+            </p>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- КАТЕГОРІЇ НАВЧАННЯ -->
+<h2 class="section-title mb-4">
+    Категорії навчання
+</h2>
+
+<div class="row g-4 mb-5">
+
+    <!-- Frontend -->
+    <div class="col-md-4 col-lg-2">
+        <a asp-controller="Course"
+           asp-action="Index"
+           class="text-decoration-none">
+
+            <div class="category-card text-center p-3 h-100">
+                <div class="category-icon mb-2"
+                     style="color: #3D5C4B;">
+                    <i class="bi bi-window-sidebar fs-3"></i>
+                </div>
+
+                <h6 class="fw-bold mb-0 text-dark">
+                    Frontend
+                </h6>
+            </div>
+        </a>
+    </div>
+
+    <!-- Backend -->
+    <div class="col-md-4 col-lg-2">
+        <a asp-controller="Course"
+           asp-action="Index"
+           class="text-decoration-none">
+
+            <div class="category-card text-center p-3 h-100">
+                <div class="category-icon mb-2"
+                     style="color: #3D5C4B;">
+                    <i class="bi bi-server fs-3"></i>
+                </div>
+
+                <h6 class="fw-bold mb-0 text-dark">
+                    Backend
+                </h6>
+            </div>
+        </a>
+    </div>
+
+    <!-- UI/UX -->
+    <div class="col-md-4 col-lg-2">
+        <a asp-controller="Course"
+           asp-action="Index"
+           class="text-decoration-none">
+
+            <div class="category-card text-center p-3 h-100">
+                <div class="category-icon mb-2"
+                     style="color: #3D5C4B;">
+                    <i class="bi bi-palette fs-3"></i>
+                </div>
+
+                <h6 class="fw-bold mb-0 text-dark">
+                    UI/UX Design
+                </h6>
+            </div>
+        </a>
+    </div>
+
+    <!-- Python -->
+    <div class="col-md-4 col-lg-2">
+        <a asp-controller="Course"
+           asp-action="Index"
+           class="text-decoration-none">
+
+            <div class="category-card text-center p-3 h-100">
+                <div class="category-icon mb-2"
+                     style="color: #3D5C4B;">
+                    <i class="bi bi-filetype-py fs-3"></i>
+                </div>
+
+                <h6 class="fw-bold mb-0 text-dark">
+                    Python
+                </h6>
+            </div>
+        </a>
+    </div>
+
+    <!-- Computer Science -->
+    <div class="col-md-4 col-lg-2">
+        <a asp-controller="Course"
+           asp-action="Index"
+           class="text-decoration-none">
+
+            <div class="category-card text-center p-3 h-100">
+                <div class="category-icon mb-2"
+                     style="color: #3D5C4B;">
+                    <i class="bi bi-cpu fs-3"></i>
+                </div>
+
+                <h6 class="fw-bold mb-0 text-dark">
+                    Computer Science
+                </h6>
+            </div>
+        </a>
+    </div>
+
+    <!-- Databases -->
+    <div class="col-md-4 col-lg-2">
+        <a asp-controller="Course"
+           asp-action="Index"
+           class="text-decoration-none">
+
+            <div class="category-card text-center p-3 h-100">
+                <div class="category-icon mb-2"
+                     style="color: #3D5C4B;">
+                    <i class="bi bi-database fs-3"></i>
+                </div>
+
+                <h6 class="fw-bold mb-0 text-dark">
+                    Databases
+                </h6>
+            </div>
+        </a>
+    </div>
+
+</div>
+
+<!-- ПОПУЛЯРНІ АБО РЕКОМЕНДОВАНІ КУРСИ -->
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 mt-5">
+
+    <h2 class="section-title mb-0">
+        @(hasPopularCourses ? "Популярні курси" : "Рекомендовані курси")
+    </h2>
+
+    <a asp-controller="Course"
+       asp-action="Index"
+       class="btn btn-outline-primary">
+        Усі курси
+        <i class="bi bi-arrow-right ms-1"></i>
+    </a>
+
+</div>
+
+<div class="row g-4">
+
+    @if (Model != null && Model.Any())
+    {
+        @foreach (var course in Model)
+        {
+            var studentCount = enrollmentCounts.TryGetValue(
+                course.Id, out var count) ? count : 0;
+
+            <div class="col-12 col-md-6 col-lg-4">
+
+                <div class="card h-100 border-0 shadow-sm course-card">
+
+                    <!-- Обкладинка курсу -->
+                    <div class="home-course-cover">
+                        @if (!string.IsNullOrWhiteSpace(course.ImagePath))
+                        {
+                            <img src="@course.ImagePath"
+                                 alt="Обкладинка курсу @course.Title"
+                                 class="home-course-image"
+                                 loading="lazy" />
+                        }
+                        else
+                        {
+                            <div class="home-course-placeholder">
+                                <i class="bi bi-code-square display-3 text-white opacity-50"></i>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Інформація про курс -->
+                    <div class="card-body d-flex flex-column">
+
+                        <!-- Рівень та тривалість -->
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+
+                            <span class="badge"
+                                  style="background-color: #F7F2F3; color: #6D1F32;">
+                                @course.Level
+                            </span>
+
+                            <small class="text-muted">
+                                <i class="bi bi-clock"></i>
+                                @course.DurationHours год
+                            </small>
+
+                        </div>
+
+                        <!-- Назва курсу -->
+                        <h5 class="card-title fw-bold"
+                            style="color: #40101F;">
+                            @course.Title
+                        </h5>
+
+                        <!-- Опис курсу -->
+                        <p class="card-text text-muted small home-course-description">
+                            @course.Description
+                        </p>
+
+                        <!-- Викладач та статистика -->
+                        <div class="d-flex justify-content-between align-items-center gap-2 mt-3 pt-3 border-top">
+
+                            <!-- Викладач -->
+                            <div class="d-flex align-items-center">
+
+                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2"
+                                     style="width: 30px; height: 30px; font-size: 0.8rem; flex-shrink: 0;">
+
+                                    @(string.IsNullOrWhiteSpace(course.Author?.Name)
+                                        ? "В"
+                                        : course.Author.Name.Substring(0, 1).ToUpper())
+
+                                </div>
+
+                                <small class="text-muted">
+                                    @(course.Author?.Name ?? "Викладач")
+                                </small>
+
+                            </div>
+
+                            <!-- Кількість модулів і студентів -->
+                            <div class="text-end">
+
+                                <small class="text-muted d-block">
+                                    <i class="bi bi-journal-text"></i>
+                                    @(course.Modules?.Count ?? 0) блоків
+                                </small>
+
+                                <small class="text-muted d-block">
+                                    <i class="bi bi-people"></i>
+                                    @studentCount студентів
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Перехід до курсу -->
+                        <a asp-controller="Course"
+                           asp-action="Details"
+                           asp-route-id="@course.Id"
+                           class="btn btn-outline-success w-100 mt-3">
+                            Детальніше
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12 text-center py-5">
+
+            <i class="bi bi-journal-x d-block mb-3"
+               style="font-size: 3rem; color: #6D1F32;"></i>
+
+            <h5 class="fw-bold" style="color: #40101F;">
+                Публічних курсів поки немає
+            </h5>
+
+            <p class="text-muted">
+                Незабаром тут з'являться нові навчальні курси.
+            </p>
+
+            <a asp-controller="Course"
+               asp-action="Index"
+               class="btn btn-primary mt-2">
+                Переглянути каталог
+            </a>
+
+        </div>
+    }
+
+</div>

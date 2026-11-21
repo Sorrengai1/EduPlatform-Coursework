@@ -1,0 +1,244 @@
+﻿
+@model IEnumerable<EduPlatform.Models.CourseModule>
+
+@{
+    ViewData["Title"] = "Тести";
+    Layout = "~/Views/Shared/_TeacherLayout.cshtml";
+
+    var orderedTests = Model
+        .OrderBy(m => m.IsArchived)
+        .ThenBy(m => m.Id)
+        .ToList();
+}
+
+<style>
+    .teacher-tests .test-card {
+        border: 1px solid #E8E7E0;
+        border-radius: 16px;
+        overflow: hidden;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .teacher-tests .test-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 28px rgba(64, 16, 31, .09) !important;
+    }
+
+    .teacher-tests .test-title {
+        color: #40101F;
+    }
+
+    .teacher-tests .btn-green {
+        background: #3D5C4B;
+        border-color: #3D5C4B;
+        color: white;
+    }
+
+    .teacher-tests .btn-green:hover {
+        background: #304B3B;
+        border-color: #304B3B;
+        color: white;
+    }
+
+    .teacher-tests .status-active {
+        background: #E5EEE6;
+        color: #3D5C4B;
+    }
+
+    .teacher-tests .archived-card {
+        background: #F7F6F3;
+    }
+</style>
+
+<div class="teacher-tests">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold test-title mb-0">Тести</h2>
+
+        <a asp-action="CreateTest"
+           class="btn btn-green shadow-sm">
+            <i class="bi bi-plus-lg"></i>
+            Створити новий тест
+        </a>
+    </div>
+
+    <p class="text-muted mb-4">
+        У цьому розділі ви можете створювати нові тести,
+        додавати питання та варіанти відповідей,
+        переглядати результати студентів і керувати
+        доступністю тестів.
+    </p>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success" role="status">
+            <i class="bi bi-check-circle me-2"></i>
+            @TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            @TempData["Error"]
+        </div>
+    }
+
+    @if (!orderedTests.Any())
+    {
+        <div class="text-center p-5 bg-light rounded-4">
+            <i class="bi bi-journal-text fs-1"
+               style="color: #3D5C4B;"></i>
+
+            <h5 class="mt-3">Тестів поки немає</h5>
+
+            <p class="text-muted">
+                Створіть перший тест для свого курсу.
+            </p>
+
+            <a asp-action="CreateTest"
+               class="btn btn-green">
+                Створити тест
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+
+            @for (int i = 0; i < orderedTests.Count; i++)
+            {
+                var module = orderedTests[i];
+
+                <div class="col-md-6 col-lg-4">
+
+                    <div class="card test-card h-100 shadow-sm
+                        @(module.IsArchived ? "archived-card" : "bg-white")">
+
+                        <div class="card-body d-flex flex-column p-4">
+
+                            <div class="d-flex justify-content-between
+                                        align-items-start gap-2 mb-2">
+
+                                <h5 class="card-title fw-bold test-title mb-0">
+                                    Тест №@(i + 1) — @module.Title
+                                </h5>
+
+                                @if (module.IsArchived)
+                                {
+                                    <span class="badge bg-secondary">
+                                        Архів
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge status-active">
+                                        Активний
+                                    </span>
+                                }
+                            </div>
+
+                            <p class="text-muted small mb-2">
+                                Курс: @module.Course?.Title
+                            </p>
+
+                            <p class="text-muted small mb-2">
+                                Кількість питань:
+                                <strong>
+                                    @(module.Questions?.Count ?? 0)
+                                </strong>
+                            </p>
+
+                            <p class="text-muted small mb-3">
+                                Ліміт спроб:
+                                <strong>
+                                    @(module.MaxAttempts == 0
+                                        ? "Без обмежень"
+                                        : module.MaxAttempts.ToString())
+                                </strong>
+                            </p>
+
+                            @if (module.IsArchived)
+                            {
+                                <p class="small text-muted">
+                                    <i class="bi bi-archive me-1"></i>
+                                    Тест недоступний для нових спроб.
+                                    Історію результатів збережено.
+                                </p>
+                            }
+
+                            <div class="mt-auto d-flex flex-column gap-2">
+
+                                <a asp-controller="Teacher"
+                                   asp-action="ManageQuestions"
+                                   asp-route-moduleId="@module.Id"
+                                   class="btn btn-sm btn-outline-primary w-100">
+                                    <i class="bi bi-list-check"></i>
+                                    Керувати питаннями
+                                </a>
+
+                                <a asp-controller="Teacher"
+                                   asp-action="EditSettings"
+                                   asp-route-id="@module.Id"
+                                   class="btn btn-sm btn-outline-secondary w-100">
+                                    <i class="bi bi-gear"></i>
+                                    Налаштування
+                                </a>
+
+                                <a asp-controller="Teacher"
+                                   asp-action="TestResults"
+                                   asp-route-moduleId="@module.Id"
+                                   class="btn btn-sm btn-green w-100">
+                                    <i class="bi bi-bar-chart"></i>
+                                    Результати
+                                </a>
+
+                                @if (module.IsArchived)
+                                {
+                                    <form asp-controller="Teacher"
+                                          asp-action="RestoreTest"
+                                          method="post"
+                                          asp-antiforgery="true">
+
+                                        <input type="hidden"
+                                               name="id"
+                                               value="@module.Id" />
+
+                                        <button type="submit"
+                                                class="btn btn-sm
+                                                       btn-outline-success w-100">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i>
+                                            Відновити тест
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-controller="Teacher"
+                                          asp-action="DeleteTest"
+                                          method="post"
+                                          asp-antiforgery="true"
+                                          onsubmit="return confirm('Видалити тест? Якщо студенти вже проходили його, тест буде архівовано зі збереженням результатів.');">
+
+                                        <input type="hidden"
+                                               name="id"
+                                               value="@module.Id" />
+
+                                        <button type="submit"
+                                                class="btn btn-sm
+                                                       btn-outline-danger w-100">
+                                            <i class="bi bi-trash me-1"></i>
+                                            Видалити / архівувати
+                                        </button>
+                                    </form>
+                                }
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,400 @@
+﻿
+@using EduPlatform.Models
+
+@{
+    ViewData["Title"] = "Кабінет";
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
+
+    var studentName = ViewBag.UserFullName as string ?? "Студент";
+    var courses = ViewBag.EnrolledCourses as List<Course> ?? new List<Course>();
+    var courseProgress = ViewBag.CourseProgress as Dictionary<int, int> ?? new Dictionary<int, int>();
+
+    int completedCourses = ViewBag.CompletedCourses is int completed ? completed : 0;
+    int completedTests = ViewBag.CompletedTests is int tests ? tests : 0;
+    double avgScore = ViewBag.AvgScore is double average ? average : 0;
+}
+
+<style>
+    /* Кабінет студента EduPlatform */
+    .student-dashboard {
+        --dash-burgundy: #6D1F32;
+        --dash-dark: #40101F;
+        --dash-green: #3D5C4B;
+        --dash-sage: #D7E0D3;
+        --dash-cream: #FDFBF7;
+    }
+
+    /* Статистика */
+    .student-dashboard .dashboard-stat {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .student-dashboard .dashboard-stat .card-body {
+        padding: 20px;
+    }
+
+    /* Картки курсів */
+    .student-dashboard .dashboard-course-card {
+        background-color: var(--dash-cream);
+        border: 1px solid #EAE4DF !important;
+        border-radius: 17px;
+        overflow: hidden;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .student-dashboard .dashboard-course-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 24px rgba(64, 16, 31, .09) !important;
+    }
+
+    .student-dashboard .dashboard-course-accent {
+        height: 5px;
+        background: linear-gradient(
+            90deg,
+            var(--dash-burgundy),
+            var(--dash-green)
+        );
+    }
+
+    .student-dashboard .dashboard-course-card .card-body {
+        padding: 22px;
+    }
+
+    /* Статус курсу */
+    .student-dashboard .dashboard-course-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 11px;
+        border-radius: 20px;
+        font-size: .75rem;
+        font-weight: 650;
+    }
+
+    .student-dashboard .dashboard-course-badge.public {
+        background-color: #E3ECE5;
+        color: var(--dash-green);
+    }
+
+    .student-dashboard .dashboard-course-badge.private {
+        background-color: #F2E8EA;
+        color: var(--dash-burgundy);
+    }
+
+    /* Назва: максимум два рядки */
+    .student-dashboard .dashboard-course-title {
+        color: var(--dash-dark);
+        font-size: 1.08rem;
+        font-weight: 700;
+        line-height: 1.45;
+        min-height: 3.14rem;
+
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        overflow: hidden;
+    }
+
+    /* Опис: максимум три рядки */
+    .student-dashboard .dashboard-course-description {
+        color: #746D70;
+        font-size: .88rem;
+        line-height: 1.6;
+        min-height: 4.23rem;
+
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        overflow: hidden;
+        overflow-wrap: anywhere;
+    }
+
+    /* Блок прогресу */
+    .student-dashboard .dashboard-progress-box {
+        background-color: #F0F5F0;
+        border: 1px solid #E1E9DF;
+        border-radius: 13px;
+        padding: 15px;
+    }
+
+    .student-dashboard .dashboard-progress-label {
+        color: var(--dash-dark);
+        font-size: .9rem;
+        font-weight: 700;
+    }
+
+    .student-dashboard .dashboard-progress-subtitle {
+        color: #777B76;
+        font-size: .75rem;
+    }
+
+    .student-dashboard .dashboard-progress-percent {
+        background-color: var(--dash-sage);
+        color: var(--dash-green);
+        font-size: .95rem;
+        font-weight: 750;
+        border-radius: 9px;
+        padding: 7px 12px;
+    }
+
+    .student-dashboard .dashboard-progress-track {
+        height: 10px;
+        background-color: #DBE5DA;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .student-dashboard .dashboard-progress-fill {
+        background-color: var(--dash-green);
+        border-radius: 20px;
+        transition: width .4s ease;
+    }
+
+    /* Кнопка */
+    .student-dashboard .dashboard-continue-btn {
+        background-color: transparent;
+        border: 1px solid var(--dash-burgundy);
+        color: var(--dash-burgundy);
+        border-radius: 9px;
+        font-weight: 650;
+        padding: 10px 14px;
+        transition: background-color .2s ease, color .2s ease;
+    }
+
+    .student-dashboard .dashboard-continue-btn:hover {
+        background-color: var(--dash-burgundy);
+        border-color: var(--dash-burgundy);
+        color: #FFFFFF;
+    }
+
+    .student-dashboard .dashboard-continue-btn:focus-visible {
+        outline: 3px solid #A7BDAA;
+        outline-offset: 3px;
+    }
+</style>
+
+<div class="student-dashboard">
+
+    <!-- Заголовок -->
+    <div class="d-flex flex-wrap justify-content-between
+                align-items-center gap-2 mb-4">
+
+        <h2 class="fw-bold mb-0" style="color: #40101F;">
+            Кабінет студента: @studentName
+        </h2>
+
+        <span class="text-muted">
+            @DateTime.Now.ToString(
+                "dd MMMM yyyy",
+                new System.Globalization.CultureInfo("uk-UA"))
+        </span>
+
+    </div>
+
+    <p class="text-muted mb-4">
+        Вітаємо у вашому кабінеті! Тут ви можете переглянути
+        свої курси, прогрес та останні результати тестів.
+    </p>
+
+    <!-- Картки статистики -->
+    <div class="row mb-4">
+
+        <div class="col-6 col-lg-3 mb-3">
+            <div class="card dashboard-stat border-0 shadow-sm h-100"
+                 style="background: linear-gradient(135deg, #6D1F32, #40101F); color: white;">
+
+                <div class="card-body">
+                    <h6 class="text-uppercase opacity-75">
+                        Курси
+                    </h6>
+
+                    <h2 class="display-5 fw-bold">
+                        @courses.Count
+                    </h2>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3 mb-3">
+            <div class="card dashboard-stat border-0 shadow-sm h-100"
+                 style="background: linear-gradient(135deg, #843B4B, #6D1F32); color: white;">
+
+                <div class="card-body">
+                    <h6 class="text-uppercase opacity-75">
+                        Завершено
+                    </h6>
+
+                    <h2 class="display-5 fw-bold">
+                        @completedCourses
+                    </h2>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3 mb-3">
+            <div class="card dashboard-stat border-0 shadow-sm h-100 bg-white">
+
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted">
+                        Пройдено тестів
+                    </h6>
+
+                    <h2 class="display-5 fw-bold text-dark">
+                        @completedTests
+                    </h2>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3 mb-3">
+            <div class="card dashboard-stat border-0 shadow-sm h-100 bg-white">
+
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted">
+                        Середній бал
+                    </h6>
+
+                    <h2 class="display-5 fw-bold"
+                        style="color: #3D5C4B;">
+                        @avgScore.ToString("0.#")%
+                    </h2>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Продовжити навчання -->
+    <h3 class="mb-3 fw-bold" style="color: #40101F;">
+        Продовжити навчання
+    </h3>
+
+    @if (courses.Any())
+    {
+        <div class="row g-4">
+
+            @foreach (var course in courses.Take(3))
+            {
+                var progress = courseProgress.TryGetValue(
+                    course.Id, out var value)
+                    ? Math.Clamp(value, 0, 100)
+                    : 0;
+
+                <div class="col-12 col-md-6 col-lg-4">
+
+                    <div class="card dashboard-course-card h-100 shadow-sm">
+
+                        <div class="dashboard-course-accent"></div>
+
+                        <div class="card-body d-flex flex-column">
+
+                            <!-- Статус курсу -->
+                            <div class="mb-3">
+
+                                <span class="dashboard-course-badge @(course.IsPublic ? "public" : "private")">
+
+                                    <i class="bi @(course.IsPublic ? "bi-globe2" : "bi-lock-fill")"></i>
+
+                                    @(course.IsPublic ? "Публічний" : "Приватний")
+
+                                </span>
+
+                            </div>
+
+                            <!-- Назва -->
+                            <h5 class="card-title dashboard-course-title mb-3"
+                                title="@course.Title">
+
+                                @course.Title
+
+                            </h5>
+
+                            <!-- Короткий опис -->
+                            <p class="card-text dashboard-course-description mb-4">
+
+                                @(string.IsNullOrWhiteSpace(course.Description)
+                                    ? "Опис курсу поки відсутній."
+                                    : course.Description)
+
+                            </p>
+
+                            <!-- Прогрес завжди внизу картки -->
+                            <div class="mt-auto">
+
+                                <div class="dashboard-progress-box mb-3">
+
+                                    <div class="d-flex justify-content-between
+                                                align-items-center gap-2 mb-3">
+
+                                        <div>
+                                            <div class="dashboard-progress-label">
+                                                Ваш прогрес
+                                            </div>
+
+                                            <div class="dashboard-progress-subtitle">
+                                                Виконання навчальної програми
+                                            </div>
+                                        </div>
+
+                                        <span class="dashboard-progress-percent">
+                                            @progress%
+                                        </span>
+
+                                    </div>
+
+                                    <div class="progress dashboard-progress-track"
+                                         role="progressbar"
+                                         aria-label="Прогрес курсу @course.Title"
+                                         aria-valuenow="@progress"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100">
+
+                                        <div class="progress-bar dashboard-progress-fill"
+                                             style="width: @(progress)%;">
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <a asp-controller="Course"
+                                   asp-action="Details"
+                                   asp-route-id="@course.Id"
+                                   class="btn dashboard-continue-btn w-100">
+
+                                    <i class="bi bi-arrow-right-circle me-2"></i>
+                                    Продовжити навчання
+
+                                </a>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info border-0 shadow-sm">
+            Ви ще не записані на жоден курс.
+
+            <a asp-controller="Course"
+               asp-action="Index"
+               class="alert-link">
+                Переглянути каталог
+            </a>
+        </div>
+    }
+
+</div>

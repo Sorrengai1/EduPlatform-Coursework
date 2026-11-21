@@ -1,0 +1,189 @@
+﻿@model EduPlatform.Models.Course
+@{
+    ViewData["Title"] = "Керування курсом";
+    Layout = "~/Views/Shared/_TeacherLayout.cshtml";
+    var availableStudents = (ViewBag.AvailableStudents as System.Collections.IEnumerable)?.Cast<EduPlatform.Models.Student>().ToList() ?? new List<EduPlatform.Models.Student>();
+    string searchString = ViewBag.SearchString as string ?? "";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fw-bold mb-1" style="color: #40101F;">Керування: @Model.Title</h1>
+            <p class="text-muted mb-0">Додавайте матеріали та керуйте доступом студентів</p>
+        </div>
+        <a asp-action="MyCourses" class="btn btn-outline-secondary shadow-sm" style="border-color: #6D1F32; color: #6D1F32;">
+            <i class="bi bi-arrow-left me-2"></i> Назад до курсів
+        </a>
+    </div>
+
+    @if (TempData["Error"] is string error)
+    {
+        <div class="alert alert-danger" role="alert"><i class="bi bi-exclamation-circle me-2"></i>@error</div>
+    }
+    @if (TempData["Success"] is string success)
+    {
+        <div class="alert alert-success" role="status"><i class="bi bi-check-circle me-2"></i>@success</div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 16px;">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+                    <h5 class="fw-bold mb-0" style="color: #6D1F32;"><i class="bi bi-book me-2"></i> Матеріали курсу</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="AddMaterial" method="post" enctype="multipart/form-data" id="materialForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="courseId" value="@Model.Id" />
+                        <div class="mb-3">
+                            <input type="text" name="title" id="materialTitle" class="form-control" placeholder="Назва матеріалу (напр. Лекція 1)" required style="border-radius: 8px;" />
+                            <div class="invalid-feedback">Вкажіть назву матеріалу.</div>
+                        </div>
+                        <div class="mb-3">
+                            <textarea name="content" id="materialContent" class="form-control" placeholder="Короткий опис або посилання" rows="2" style="border-radius: 8px;"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold" for="materialFile">Прикріпити файл (PDF, DOCX):</label>
+                            <input type="file" name="file" id="materialFile" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="form-control" style="border-radius: 8px;" />
+                            <div class="invalid-feedback" id="materialFileError">Дозволено лише PDF або DOCX розміром до 5 МБ.</div>
+                        </div>
+                        <div id="materialFormError" class="text-danger small mb-3" role="alert" aria-live="polite" hidden></div>
+                        <button type="submit" class="btn w-100 text-white fw-bold" style="background-color: #3D5C4B; border-radius: 8px;"><i class="bi bi-plus-lg me-1"></i> Додати матеріал</button>
+                    </form>
+                    <hr class="my-4" style="border-color: #F2E8EA;" />
+                    <h6 class="fw-bold mb-3" style="color: #40101F;">Вже додано:</h6>
+                    @if (Model.Materials != null && Model.Materials.Any())
+                    {
+                        @foreach (var mat in Model.Materials)
+                        {
+                            <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded mb-2" style="border-left: 4px solid #6D1F32;">
+                                <div>
+                                    <strong class="d-block" style="color: #40101F;">@mat.Title</strong>
+                                    @if (!string.IsNullOrEmpty(mat.FilePath))
+                                    {
+                                        <a href="@mat.FilePath" target="_blank" rel="noopener noreferrer" class="text-decoration-none small" style="color: #3D5C4B;"><i class="bi bi-paperclip"></i> Завантажити файл</a>
+                                    }
+                                </div>
+                                <form asp-action="DeleteMaterial" method="post" onsubmit="return confirm('Видалити цей матеріал?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@mat.Id" />
+                                    <input type="hidden" name="courseId" value="@Model.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="Видалити"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">Матеріалів ще немає.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100" style="border-radius: 16px;">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+                    <h5 class="fw-bold mb-0" style="color: #3D5C4B;"><i class="bi bi-people me-2"></i> Студенти курсу</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="ManageCourse" method="get" class="mb-4">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <div class="input-group">
+                            <input type="text" name="searchString" value="@searchString" class="form-control" placeholder="Пошук за ім'ям або email..." style="border-radius: 8px 0 0 8px;" />
+                            <button type="submit" class="btn text-white" aria-label="Знайти студентів" style="background-color: #6D1F32; border-radius: 0 8px 8px 0;"><i class="bi bi-search"></i></button>
+                        </div>
+                    </form>
+                    <form asp-action="EnrollStudent" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="courseId" value="@Model.Id" />
+                        <label class="form-label text-muted small fw-bold" for="studentIds">Оберіть студентів (Ctrl для кількох):</label>
+                        @if (availableStudents.Any())
+                        {
+                            <select id="studentIds" name="studentIds" class="form-select mb-3" multiple size="5" required style="border-radius: 8px;">
+                                @foreach (var student in availableStudents)
+                                {
+                                    <option value="@student.Id">@student.Name (@student.Email)</option>
+                                }
+                            </select>
+                            <button type="submit" class="btn w-100 text-white fw-bold" style="background-color: #3D5C4B; border-radius: 8px;"><i class="bi bi-person-plus me-1"></i> Додати обраних</button>
+                        }
+                        else
+                        {
+                            <div class="text-center rounded p-4 mb-3" style="background-color: #F8F6F4; border: 1px solid #E7E0DC;" role="status">
+                                <i class="bi bi-search fs-4 d-block mb-2" style="color: #6D1F32;"></i>
+                                <strong style="color: #40101F;">@(string.IsNullOrWhiteSpace(searchString) ? "Немає доступних студентів" : "Студентів не знайдено")</strong>
+                                <p class="text-muted small mb-0 mt-1">@(string.IsNullOrWhiteSpace(searchString) ? "Усі доступні студенти вже додані або ще не зареєстровані." : "За вашим запитом немає результатів. Спробуйте інше ім’я або email.")</p>
+                            </div>
+                            <button type="button" class="btn w-100 text-white fw-bold" disabled style="background-color: #3D5C4B; border-radius: 8px;"><i class="bi bi-person-plus me-1"></i> Додати обраних</button>
+                        }
+                    </form>
+                    <hr class="my-4" style="border-color: #F2E8EA;" />
+                    <h6 class="fw-bold mb-3" style="color: #40101F;">Вже на курсі:</h6>
+                    @if (Model.Enrollments != null && Model.Enrollments.Any())
+                    {
+                        @foreach (var enr in Model.Enrollments)
+                        {
+                            <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded mb-2" style="border-left: 4px solid #3D5C4B;">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: #6D1F32; font-weight: bold;">@(string.IsNullOrEmpty(enr.Student?.Name) ? "С" : enr.Student.Name.Substring(0, 1).ToUpper())</div>
+                                    <div><strong class="d-block" style="color: #40101F;">@enr.Student?.Name</strong><small class="text-muted">@enr.Student?.Email</small></div>
+                                </div>
+                                <form asp-action="RemoveStudent" method="post" onsubmit="return confirm('Ви впевнені, що хочете видалити цього студента з курсу?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="courseId" value="@Model.Id" />
+                                    <input type="hidden" name="studentId" value="@enr.StudentId" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="Видалити студента"><i class="bi bi-x-lg"></i></button>
+                                </form>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">На курс ще ніхто не записаний.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const form = document.getElementById('materialForm');
+    const title = document.getElementById('materialTitle');
+    const content = document.getElementById('materialContent');
+    const file = document.getElementById('materialFile');
+    const error = document.getElementById('materialFormError');
+    const fileError = document.getElementById('materialFileError');
+    if (!form) return;
+    form.addEventListener('submit', function (event) {
+        title.classList.remove('is-invalid');
+        file.classList.remove('is-invalid');
+        error.hidden = true;
+        if (!title.value.trim()) {
+            event.preventDefault();
+            title.classList.add('is-invalid');
+            title.focus();
+            return;
+        }
+        if (!content.value.trim() && !file.files.length) {
+            event.preventDefault();
+            error.textContent = 'Додайте опис, посилання або прикріпіть файл.';
+            error.hidden = false;
+            content.focus();
+            return;
+        }
+        if (file.files.length) {
+            const selected = file.files[0];
+            if (!/\.(pdf|docx)$/i.test(selected.name) || selected.size === 0 || selected.size > 5 * 1024 * 1024) {
+                event.preventDefault();
+                file.classList.add('is-invalid');
+                fileError.textContent = selected.size > 5 * 1024 * 1024 ? 'Розмір файлу не повинен перевищувати 5 МБ.' : 'Дозволено лише файли PDF та DOCX.';
+                file.focus();
+            }
+        }
+    });
+})();
+</script>
