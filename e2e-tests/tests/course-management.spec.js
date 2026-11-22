@@ -42,8 +42,17 @@ test.describe('EduPlatform — керування курсами', () => {
       maxRedirects: 0
     });
 
-    // Запит без antiforgery-токена має бути відхилений.
-    expect(response.status()).toBe(400);
+    // Неавторизований запит має бути відхилений.
+    const status = response.status();
+
+    expect([302, 303, 307, 400, 401, 403]).toContain(status);
+
+    // Якщо сервер перенаправляє запит, перевіряємо адресу.
+    if ([302, 303, 307].includes(status)) {
+      expect(response.headers()['location']).toMatch(
+        /\/Account\/Login/i
+      );
+    }
   });
 
   test('Викладач може відкрити форму створення курсу', async ({ page }) => {

@@ -1,4 +1,4 @@
-﻿
+
 @model IEnumerable<EduPlatform.Models.Course>
 
 @{
@@ -54,10 +54,10 @@
         </div>
 
         <div class="col-lg-6 text-center position-relative">
-            <img src="~/images/logo.png"
+            <img src="~/images/logo.webp"
                  alt="EduPlatform"
                  class="img-fluid position-relative"
-                 style="z-index: 2; max-width: 380px;" />
+                 style="z-index: 2; width: 100%; max-width: 380px; height: auto;" />
         </div>
 
     </div>
@@ -284,10 +284,14 @@
                     <div class="home-course-cover">
                         @if (!string.IsNullOrWhiteSpace(course.ImagePath))
                         {
-                            <img src="@course.ImagePath"
-                                 alt="Обкладинка курсу @course.Title"
-                                 class="home-course-image"
-                                 loading="lazy" />
+                            <picture>
+                    <source srcset="@System.IO.Path.ChangeExtension(course.ImagePath, ".webp")"
+                           type="image/webp" />
+                    <img src="@course.ImagePath"
+                         alt="Обкладинка курсу @course.Title"
+                         class="home-course-image"
+                         loading="lazy" />
+                </picture>
                         }
                         else
                         {

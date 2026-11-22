@@ -1,4 +1,4 @@
-﻿
+﻿using EduPlatform.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using EduPlatform.Data;
@@ -587,10 +587,7 @@ namespace EduPlatform.Controllers
                 // - немає повторених значень;
                 // - вибрано всі правильні варіанти;
                 // - не вибрано жодного неправильного.
-                var isCorrect =
-                    correctSet.Count > 0 &&
-                    selected.Count == selectedSet.Count &&
-                    selectedSet.SetEquals(correctSet);
+                var isCorrect = AnswerEvaluator.IsCorrect(selected, correctSet);
 
                 if (isCorrect)
                 {

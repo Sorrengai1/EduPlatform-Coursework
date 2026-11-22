@@ -49,8 +49,14 @@ namespace EduPlatform.Migrations
                     b.Property<DateTime?>("FinishedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("IsPractice")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("ModuleId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("QuestionOrderJson")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("Score")
                         .HasColumnType("INTEGER");
@@ -109,6 +115,7 @@ namespace EduPlatform.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
+                        .HasMaxLength(3000)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("DurationHours")
@@ -129,6 +136,7 @@ namespace EduPlatform.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
+                        .HasMaxLength(150)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -181,6 +189,9 @@ namespace EduPlatform.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("CourseId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsArchived")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("MaxAttempts")

@@ -57,11 +57,14 @@ a {
    Сітка активується для стандартного макета з header та footer.
    Для надійного розділення макетів додайте class="public-layout" на body
    у Views/Shared/_Layout.cshtml. */
+
 body.public-layout,
 body:has(> header):has(> .container.flex-grow-1):has(> footer.footer) {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr) auto;
 }
+
 
     body.public-layout > header {
         grid-row: 1;
@@ -795,4 +798,31 @@ body:has(> header):has(> .container.flex-grow-1):has(> footer.footer) {
     .answer-list .list-group-item {
         margin-top: 0 !important;
         border-radius: 8px !important;
+    }
+/* Адаптивність головної сторінки */
+.hero-section img {
+    display: block;
+    width: 100%;
+    max-width: 380px;
+    height: auto;
+    margin-inline: auto;
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .container.flex-grow-1 {
+        padding: 30px 24px;
+    }
+}
+
+/* WCAG 2.2 AA — контрастність зелених кнопок */
+.btn-outline-success {
+    color: #3D5C4B !important;
+    border-color: #3D5C4B !important;
+}
+
+    .btn-outline-success:hover,
+    .btn-outline-success:focus-visible {
+        background-color: #3D5C4B !important;
+        border-color: #3D5C4B !important;
+        color: #FFFFFF !important;
     }
